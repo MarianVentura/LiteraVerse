@@ -1,4 +1,4 @@
-package com.ucne.literaverse.ui.theme
+package edu.ucne.literaverse.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -75,7 +75,7 @@ private val darkScheme = darkColorScheme(
 @Composable
 fun LiteraVerseTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
