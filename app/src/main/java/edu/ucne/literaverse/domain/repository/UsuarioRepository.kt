@@ -6,3 +6,4 @@ import edu.ucne.literaverse.domain.model.Usuario
 interface UsuarioRepository {
     suspend fun login(userName: String, password: String): Resource<Usuario>
 }
+
