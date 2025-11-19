@@ -15,3 +15,4 @@ sealed class Screen {
     @Serializable
     data object Home : Screen()
 }
+
