@@ -5,3 +5,4 @@ data class LoginResponse(
     val userName: String,
     val password: String
 )
+
