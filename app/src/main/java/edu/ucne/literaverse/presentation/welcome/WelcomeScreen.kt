@@ -110,4 +110,6 @@ fun WelcomeScreenPreview() {
     WelcomeScreen(
         onContinue = {}
     )
+
+
 }
