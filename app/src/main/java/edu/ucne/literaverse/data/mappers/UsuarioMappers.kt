@@ -27,3 +27,4 @@ fun LoginResponse.toDomain(): Usuario = Usuario(
     userName = userName,
     password = ""
 )
+
