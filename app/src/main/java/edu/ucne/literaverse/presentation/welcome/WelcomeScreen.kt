@@ -22,7 +22,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import edu.ucne.literaverse.R
-
+import androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun WelcomeScreen(onContinue: () -> Unit) {
     var startAnimation by remember { mutableStateOf(false) }
@@ -102,4 +102,12 @@ fun WelcomeScreen(onContinue: () -> Unit) {
             }
         }
     }
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun WelcomeScreenPreview() {
+    WelcomeScreen(
+        onContinue = {}
+    )
 }
