@@ -21,6 +21,20 @@ class RemoteDataSource @Inject constructor(
         }
     }
 
+    suspend fun register(request: LoginRequest): Resource<LoginResponse> {
+        return try {
+            val response = literaVerseApi.createUsuario(request)
+            if (response.isSuccessful) {
+                response.body()?.let { Resource.Success(it) }
+                    ?: Resource.Error("Respuesta vacía del servidor")
+            } else {
+                Resource.Error("HTTP ${response.code()} ${response.message()}")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.localizedMessage ?: "Error de red")
+        }
+    }
+
     suspend fun getUsuarios(): Resource<List<LoginResponse>> {
         return try {
             val response = literaVerseApi.getUsuarios()
