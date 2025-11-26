@@ -11,6 +11,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import edu.ucne.literaverse.presentation.login.LoginScreen
 import edu.ucne.literaverse.presentation.welcome.WelcomeScreen
+import edu.ucne.literaverse.presentation.register.RegisterScreen
 import androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun MainNavigation(navController: NavHostController) {
@@ -42,12 +43,16 @@ fun MainNavigation(navController: NavHostController) {
         }
 
         composable<Screen.Register> {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("Registro - Próximamente")
-            }
+            RegisterScreen(
+                onRegisterSuccess = {
+                    navController.navigate(Screen.Login) {
+                        popUpTo(Screen.Register) { inclusive = true }
+                    }
+                },
+                onNavigateToLogin = {
+                    navController.popBackStack()
+                }
+            )
         }
 
         composable<Screen.Home> {
@@ -61,16 +66,7 @@ fun MainNavigation(navController: NavHostController) {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun RegisterScreenPreview() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text("Registro - Próximamente")
-    }
-}
+
 
 @Preview(showBackground = true)
 @Composable
