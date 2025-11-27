@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import edu.ucne.literaverse.presentation.home.HomeScreen
 import edu.ucne.literaverse.presentation.login.LoginScreen
 import edu.ucne.literaverse.presentation.welcome.WelcomeScreen
 import edu.ucne.literaverse.presentation.register.RegisterScreen
@@ -56,25 +57,14 @@ fun MainNavigation(navController: NavHostController) {
         }
 
         composable<Screen.Home> {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("Home - Próximamente")
-            }
+            HomeScreen(
+                onStoryClick = { storyId ->
+
+                }
+            )
         }
     }
 }
 
 
 
-@Preview(showBackground = true)
-@Composable
-fun HomeScreenPreview() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text("Home - Próximamente")
-    }
-}
