@@ -2,6 +2,7 @@ package edu.ucne.literaverse.data.remote
 
 import edu.ucne.literaverse.data.remote.dto.LoginRequest
 import edu.ucne.literaverse.data.remote.dto.LoginResponse
+import edu.ucne.literaverse.data.remote.dto.RegisterRequest
 import edu.ucne.literaverse.data.remote.dto.GenreResponse
 import edu.ucne.literaverse.data.remote.dto.StoryResponse
 import javax.inject.Inject
@@ -11,63 +12,41 @@ class RemoteDataSource @Inject constructor(
 ) {
     suspend fun login(request: LoginRequest): Resource<LoginResponse> {
         return try {
-            val response = literaVerseApi.createUsuario(request)
+            val response = literaVerseApi.login(request)
             if (response.isSuccessful) {
                 response.body()?.let { Resource.Success(it) }
                     ?: Resource.Error("Respuesta vacía del servidor")
             } else {
-                Resource.Error("HTTP ${response.code()} ${response.message()}")
+                when (response.code()) {
+                    401 -> Resource.Error("Usuario o contraseña incorrectos")
+                    else -> Resource.Error("HTTP ${response.code()} ${response.message()}")
+                }
             }
         } catch (e: Exception) {
             Resource.Error(e.localizedMessage ?: "Error de red")
         }
     }
 
-    suspend fun register(request: LoginRequest): Resource<LoginResponse> {
+    suspend fun register(request: RegisterRequest): Resource<LoginResponse> {
         return try {
-            val response = literaVerseApi.createUsuario(request)
+            val response = literaVerseApi.register(request)
             if (response.isSuccessful) {
                 response.body()?.let { Resource.Success(it) }
                     ?: Resource.Error("Respuesta vacía del servidor")
             } else {
-                Resource.Error("HTTP ${response.code()} ${response.message()}")
+                when (response.code()) {
+                    400 -> Resource.Error("El usuario ya existe")
+                    else -> Resource.Error("HTTP ${response.code()} ${response.message()}")
+                }
             }
         } catch (e: Exception) {
             Resource.Error(e.localizedMessage ?: "Error de red")
         }
     }
 
-    suspend fun getUsuarios(): Resource<List<LoginResponse>> {
+    suspend fun logout(token: String): Resource<Unit> {
         return try {
-            val response = literaVerseApi.getUsuarios()
-            if (response.isSuccessful) {
-                response.body()?.let { Resource.Success(it) }
-                    ?: Resource.Error("Respuesta vacía del servidor")
-            } else {
-                Resource.Error("HTTP ${response.code()} ${response.message()}")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.localizedMessage ?: "Error de red")
-        }
-    }
-
-    suspend fun getUsuario(id: Int): Resource<LoginResponse> {
-        return try {
-            val response = literaVerseApi.getUsuario(id)
-            if (response.isSuccessful) {
-                response.body()?.let { Resource.Success(it) }
-                    ?: Resource.Error("Respuesta vacía del servidor")
-            } else {
-                Resource.Error("HTTP ${response.code()} ${response.message()}")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.localizedMessage ?: "Error de red")
-        }
-    }
-
-    suspend fun updateUsuario(id: Int, request: LoginRequest): Resource<Unit> {
-        return try {
-            val response = literaVerseApi.updateUsuario(id, request)
+            val response = literaVerseApi.logout(token)
             if (response.isSuccessful) {
                 Resource.Success(Unit)
             } else {
@@ -78,6 +57,19 @@ class RemoteDataSource @Inject constructor(
         }
     }
 
+    suspend fun validateToken(token: String): Resource<Map<String, Any>> {
+        return try {
+            val response = literaVerseApi.validateToken(token)
+            if (response.isSuccessful) {
+                response.body()?.let { Resource.Success(it) }
+                    ?: Resource.Error("Respuesta vacía del servidor")
+            } else {
+                Resource.Error("HTTP ${response.code()} ${response.message()}")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.localizedMessage ?: "Error de red")
+        }
+    }
     suspend fun getFeaturedStories(): Resource<List<StoryResponse>> {
         return try {
             val response = literaVerseApi.getFeaturedStories()
