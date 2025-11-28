@@ -134,7 +134,7 @@ fun HomeTopBar() {
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.ic_literaverse_v2_round),
+                    painter = painterResource(id = R.drawable.ic_literaverse_logo),
                     contentDescription = null,
                     modifier = Modifier.size(32.dp),
                     tint = MaterialTheme.colorScheme.primary

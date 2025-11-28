@@ -22,7 +22,7 @@ fun Usuario.toRegisterRequest(): RegisterRequest {
 
 fun LoginResponse.toDomain(): Usuario {
     return Usuario(
-        usuarioId = usuarioId,
+        usuarioId = userId,
         userName = userName,
         password = "",
         token = token
