@@ -2,7 +2,8 @@ package edu.ucne.literaverse.data.repository
 
 import edu.ucne.literaverse.data.local.dao.UsuarioDao
 import edu.ucne.literaverse.data.mappers.toDomain
-import edu.ucne.literaverse.data.mappers.toRequest
+import edu.ucne.literaverse.data.mappers.toLoginRequest
+import edu.ucne.literaverse.data.mappers.toRegisterRequest
 import edu.ucne.literaverse.data.remote.RemoteDataSource
 import edu.ucne.literaverse.data.remote.Resource
 import edu.ucne.literaverse.domain.model.Usuario
@@ -21,7 +22,7 @@ class UsuarioRepositoryImpl @Inject constructor(
             password = password
         )
 
-        val request = usuario.toRequest()
+        val request = usuario.toLoginRequest()
 
         return when (val result = remoteDataSource.login(request)) {
             is Resource.Success -> {
@@ -34,32 +35,13 @@ class UsuarioRepositoryImpl @Inject constructor(
     }
 
     override suspend fun register(userName: String, password: String): Resource<Usuario> {
-        val usuariosResult = remoteDataSource.getUsuarios()
-
-        when (usuariosResult) {
-            is Resource.Success -> {
-                val usuarios = usuariosResult.data ?: emptyList()
-                val usuarioExistente = usuarios.find {
-                    it.userName.equals(userName, ignoreCase = true)
-                }
-
-                if (usuarioExistente != null) {
-                    return Resource.Error("Este nombre de usuario ya está en uso")
-                }
-            }
-            is Resource.Error -> {
-                return Resource.Error("Error al verificar disponibilidad del usuario")
-            }
-            is Resource.Loading -> {}
-        }
-
         val usuario = Usuario(
             usuarioId = 0,
             userName = userName,
             password = password
         )
 
-        val request = usuario.toRequest()
+        val request = usuario.toRegisterRequest()
 
         return when (val result = remoteDataSource.register(request)) {
             is Resource.Success -> {
@@ -72,13 +54,6 @@ class UsuarioRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getUsuarios(): Resource<List<Usuario>> {
-        return when (val result = remoteDataSource.getUsuarios()) {
-            is Resource.Success -> {
-                val usuarios = result.data?.map { it.toDomain() } ?: emptyList()
-                Resource.Success(usuarios)
-            }
-            is Resource.Error -> Resource.Error(result.message ?: "Error al obtener usuarios")
-            is Resource.Loading -> Resource.Loading()
-        }
+        return Resource.Error("Método no disponible")
     }
 }

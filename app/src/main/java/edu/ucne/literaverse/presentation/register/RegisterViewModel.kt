@@ -3,6 +3,7 @@ package edu.ucne.literaverse.presentation.register
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import edu.ucne.literaverse.data.local.TokenManager
 import edu.ucne.literaverse.data.remote.Resource
 import edu.ucne.literaverse.domain.usecase.usuarioUseCases.RegisterUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,7 +15,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class RegisterViewModel @Inject constructor(
-    private val registerUseCase: RegisterUseCase
+    private val registerUseCase: RegisterUseCase,
+    private val tokenManager: TokenManager
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(RegisterUiState())
@@ -45,12 +47,17 @@ class RegisterViewModel @Inject constructor(
             _state.value.confirmPassword
         )) {
             is Resource.Success -> {
-                _state.update {
-                    it.copy(
-                        isLoading = false,
-                        isRegisterSuccessful = true,
-                        userMessage = "Usuario registrado exitosamente"
-                    )
+                result.data?.let { usuario ->
+                    tokenManager.saveToken(usuario.token)
+                    tokenManager.saveUserId(usuario.usuarioId)
+                    tokenManager.saveUserName(usuario.userName)
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            isRegisterSuccessful = true,
+                            userMessage = "Usuario registrado exitosamente"
+                        )
+                    }
                 }
             }
             is Resource.Error -> {

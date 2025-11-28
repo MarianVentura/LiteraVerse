@@ -14,4 +14,17 @@ sealed interface Screen {
 
     @Serializable
     data object Home : Screen
+
+
+    @Serializable
+    data object Search : Screen
+
+    @Serializable
+    data object Library : Screen
+
+    @Serializable
+    data object Write : Screen
+
+    @Serializable
+    data object Perfil : Screen
 }

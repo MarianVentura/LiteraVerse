@@ -2,12 +2,16 @@ package edu.ucne.literaverse.data.remote.dto
 
 data class StoryResponse(
     val storyId: Int,
+    val userId: Int,
     val title: String,
-    val author: String,
-    val description: String,
+    val synopsis: String,
     val coverImageUrl: String?,
-    val genres: List<String>,
-    val reads: Int,
-    val chapters: Int,
-    val status: String
+    val isDraft: Boolean,
+    val isPublished: Boolean,
+    val createdAt: String,
+    val publishedAt: String?,
+    val updatedAt: String,
+    val viewCount: Int,
+    val genre: String?,
+    val tags: String?
 )

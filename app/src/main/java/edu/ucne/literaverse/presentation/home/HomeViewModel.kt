@@ -21,13 +21,19 @@ class HomeViewModel @Inject constructor(
     val state: StateFlow<HomeUiState> = _state.asStateFlow()
 
     init {
-        onEvent(HomeEvent.LoadHomeData)
+        loadHomeData()
     }
 
     fun onEvent(event: HomeEvent) {
         when (event) {
             is HomeEvent.LoadHomeData -> loadHomeData()
-            is HomeEvent.OnGenreSelected -> loadStoriesByGenre(event.genre)
+            is HomeEvent.OnGenreSelected -> {
+                if (_state.value.selectedGenre == event.genre) {
+                    _state.update { it.copy(selectedGenre = null, storiesByGenre = emptyList()) }
+                } else {
+                    loadStoriesByGenre(event.genre)
+                }
+            }
             is HomeEvent.Refresh -> loadHomeData()
         }
     }
@@ -82,7 +88,14 @@ class HomeViewModel @Inject constructor(
                 }
             }
             is Resource.Error -> {
-                _state.update { it.copy(isLoading = false, error = result.message) }
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        error = result.message,
+                        selectedGenre = null,
+                        storiesByGenre = emptyList()
+                    )
+                }
             }
             is Resource.Loading -> {}
         }

@@ -6,11 +6,15 @@ import edu.ucne.literaverse.domain.model.Story
 fun StoryResponse.toDomain(): Story = Story(
     storyId = storyId,
     title = title,
-    author = author,
-    description = description,
+    author = "Usuario $userId",
+    description = synopsis,
     coverImageUrl = coverImageUrl,
-    genres = genres,
-    reads = reads,
-    chapters = chapters,
-    status = status
+    genres = genre?.split(",")?.map { it.trim() } ?: emptyList(),
+    reads = viewCount,
+    chapters = 0,
+    status = when {
+        isPublished -> "Publicado"
+        isDraft -> "Borrador"
+        else -> "Desconocido"
+    }
 )

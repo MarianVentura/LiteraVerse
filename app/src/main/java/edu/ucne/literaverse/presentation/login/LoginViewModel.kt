@@ -3,6 +3,7 @@ package edu.ucne.literaverse.presentation.login
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import edu.ucne.literaverse.data.local.TokenManager
 import edu.ucne.literaverse.data.remote.Resource
 import edu.ucne.literaverse.domain.usecase.usuarioUseCases.LoginUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,7 +15,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val loginUseCase: LoginUseCase
+    private val loginUseCase: LoginUseCase,
+    private val tokenManager: TokenManager
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(LoginUiState())
@@ -38,12 +40,17 @@ class LoginViewModel @Inject constructor(
 
         when (val result = loginUseCase(_state.value.userName, _state.value.password)) {
             is Resource.Success -> {
-                _state.update {
-                    it.copy(
-                        isLoading = false,
-                        isLoginSuccessful = true,
-                        userMessage = "Login exitoso"
-                    )
+                result.data?.let { usuario ->
+                    tokenManager.saveToken(usuario.token)
+                    tokenManager.saveUserId(usuario.usuarioId)
+                    tokenManager.saveUserName(usuario.userName)
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            isLoginSuccessful = true,
+                            userMessage = "Login exitoso"
+                        )
+                    }
                 }
             }
             is Resource.Error -> {

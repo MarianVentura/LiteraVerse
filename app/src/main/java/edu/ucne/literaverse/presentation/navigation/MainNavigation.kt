@@ -13,6 +13,10 @@ import edu.ucne.literaverse.presentation.home.HomeScreen
 import edu.ucne.literaverse.presentation.login.LoginScreen
 import edu.ucne.literaverse.presentation.welcome.WelcomeScreen
 import edu.ucne.literaverse.presentation.register.RegisterScreen
+import edu.ucne.literaverse.presentation.library.LibraryScreen
+import edu.ucne.literaverse.presentation.perfil.PerfilScreen
+import edu.ucne.literaverse.presentation.search.SearchScreen
+import edu.ucne.literaverse.presentation.write.WriteScreen
 import androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun MainNavigation(navController: NavHostController) {
@@ -58,13 +62,96 @@ fun MainNavigation(navController: NavHostController) {
 
         composable<Screen.Home> {
             HomeScreen(
-                onStoryClick = { storyId ->
+                onNavigateToBuscar = {
+                    navController.navigate(Screen.Search)
+                },
+                onNavigateToLibrary = {
+                    navController.navigate(Screen.Library)
+                },
+                onNavigateToWrite = {
+                    navController.navigate(Screen.Write)
+                },
+                onNavigateToPerfil = {
+                    navController.navigate(Screen.Perfil)
+                }
+            )
+        }
 
+        composable<Screen.Search> {
+            SearchScreen(
+                onNavigateToHome = {
+                    navController.navigate(Screen.Home) {
+                        popUpTo(Screen.Home) { inclusive = true }
+                    }
+                },
+                onNavigateToLibrary = {
+                    navController.navigate(Screen.Library)
+                },
+                onNavigateToWrite = {
+                    navController.navigate(Screen.Write)
+                },
+                onNavigateToPerfil = {
+                    navController.navigate(Screen.Perfil)
+                }
+            )
+        }
+
+        composable<Screen.Library> {
+            LibraryScreen(
+                onNavigateToHome = {
+                    navController.navigate(Screen.Home) {
+                        popUpTo(Screen.Home) { inclusive = true }
+                    }
+                },
+                onNavigateToBuscar = {
+                    navController.navigate(Screen.Search)
+                },
+                onNavigateToWrite = {
+                    navController.navigate(Screen.Write)
+                },
+                onNavigateToPerfil = {
+                    navController.navigate(Screen.Perfil)
+                }
+            )
+        }
+
+        composable<Screen.Write> {
+            WriteScreen(
+                onNavigateToHome = {
+                    navController.navigate(Screen.Home) {
+                        popUpTo(Screen.Home) { inclusive = true }
+                    }
+                },
+                onNavigateToBuscar = {
+                    navController.navigate(Screen.Search)
+                },
+                onNavigateToLibrary = {
+                    navController.navigate(Screen.Library)
+                },
+                onNavigateToPerfil = {
+                    navController.navigate(Screen.Perfil)
+                }
+            )
+        }
+
+        composable<Screen.Perfil> {
+            PerfilScreen(
+                onNavigateToHome = {
+                    navController.navigate(Screen.Home) {
+                        popUpTo(Screen.Home) { inclusive = true }
+                    }
+                },
+                onNavigateToBuscar = {
+                    navController.navigate(Screen.Search)
+                },
+                onNavigateToLibrary = {
+                    navController.navigate(Screen.Library)
+                },
+                onNavigateToWrite = {
+                    navController.navigate(Screen.Write)
                 }
             )
         }
     }
 }
-
-
 
