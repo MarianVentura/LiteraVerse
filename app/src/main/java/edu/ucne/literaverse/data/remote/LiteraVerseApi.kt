@@ -2,30 +2,27 @@ package edu.ucne.literaverse.data.remote
 
 import edu.ucne.literaverse.data.remote.dto.LoginRequest
 import edu.ucne.literaverse.data.remote.dto.LoginResponse
+import edu.ucne.literaverse.data.remote.dto.RegisterRequest
 import edu.ucne.literaverse.data.remote.dto.GenreResponse
 import edu.ucne.literaverse.data.remote.dto.StoryResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
-import retrofit2.http.PUT
 import retrofit2.http.Path
 
 interface LiteraVerseApi {
-    @GET("api/Usuarios")
-    suspend fun getUsuarios(): Response<List<LoginResponse>>
+    @POST("api/Auth/Login")
+    suspend fun login(@Body request: LoginRequest): Response<LoginResponse>
 
-    @POST("api/Usuarios")
-    suspend fun createUsuario(@Body request: LoginRequest): Response<LoginResponse>
+    @POST("api/Auth/Register")
+    suspend fun register(@Body request: RegisterRequest): Response<LoginResponse>
 
-    @GET("api/Usuarios/{id}")
-    suspend fun getUsuario(@Path("id") id: Int): Response<LoginResponse>
+    @POST("api/Auth/Logout")
+    suspend fun logout(@Body token: String): Response<Unit>
 
-    @PUT("api/Usuarios/{id}")
-    suspend fun updateUsuario(
-        @Path("id") id: Int,
-        @Body request: LoginRequest
-    ): Response<Unit>
+    @POST("api/Auth/ValidateToken")
+    suspend fun validateToken(@Body token: String): Response<Map<String, Any>>
 
     @GET("api/Explore/featured")
     suspend fun getFeaturedStories(): Response<List<StoryResponse>>
