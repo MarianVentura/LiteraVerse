@@ -32,6 +32,10 @@ import edu.ucne.literaverse.domain.model.Story
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
+    onNavigateToBuscar: () -> Unit = {},
+    onNavigateToLibrary: () -> Unit = {},
+    onNavigateToWrite: () -> Unit = {},
+    onNavigateToPerfil: () -> Unit = {},
     onStoryClick: (Int) -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -41,7 +45,12 @@ fun HomeScreen(
             HomeTopBar()
         },
         bottomBar = {
-            HomeBottomBar()
+            HomeBottomBar(
+                onNavigateToBuscar = onNavigateToBuscar,
+                onNavigateToLibrary = onNavigateToLibrary,
+                onNavigateToWrite = onNavigateToWrite,
+                onNavigateToPerfil = onNavigateToPerfil
+            )
         }
     ) { padding ->
         if (state.isLoading && state.featured.isEmpty()) {
@@ -161,7 +170,12 @@ fun HomeTopBar() {
 }
 
 @Composable
-fun HomeBottomBar() {
+fun HomeBottomBar(
+    onNavigateToBuscar: () -> Unit,
+    onNavigateToLibrary: () -> Unit,
+    onNavigateToWrite: () -> Unit,
+    onNavigateToPerfil: () -> Unit
+) {
     NavigationBar(
         containerColor = MaterialTheme.colorScheme.surface
     ) {
@@ -175,25 +189,25 @@ fun HomeBottomBar() {
             icon = { Icon(Icons.Default.Search, contentDescription = null) },
             label = { Text("Buscar", style = MaterialTheme.typography.labelSmall) },
             selected = false,
-            onClick = {}
+            onClick = onNavigateToBuscar
         )
         NavigationBarItem(
             icon = { Icon(Icons.Default.List, contentDescription = null) },
             label = { Text("Biblioteca", style = MaterialTheme.typography.labelSmall) },
             selected = false,
-            onClick = {}
+            onClick = onNavigateToLibrary
         )
         NavigationBarItem(
             icon = { Icon(Icons.Default.Edit, contentDescription = null) },
             label = { Text("Escribir", style = MaterialTheme.typography.labelSmall) },
             selected = false,
-            onClick = {}
+            onClick = onNavigateToWrite
         )
         NavigationBarItem(
             icon = { Icon(Icons.Default.Person, contentDescription = null) },
             label = { Text("Perfil", style = MaterialTheme.typography.labelSmall) },
             selected = false,
-            onClick = {}
+            onClick = onNavigateToPerfil
         )
     }
 }
