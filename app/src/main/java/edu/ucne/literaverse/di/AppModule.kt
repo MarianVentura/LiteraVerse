@@ -25,4 +25,10 @@ object AppModule {
 
     @Provides
     fun provideUsuarioDao(appDatabase: AppDatabase) = appDatabase.usuarioDao()
+
+    @Provides
+    fun provideStoryDao(appDatabase: AppDatabase) = appDatabase.storyDao()
+
+    @Provides
+    fun provideChapterDao(appDatabase: AppDatabase) = appDatabase.chapterDao()
 }

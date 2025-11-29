@@ -5,15 +5,24 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import edu.ucne.literaverse.data.local.dao.UsuarioDao
+import edu.ucne.literaverse.data.local.dao.ChapterDao
+import edu.ucne.literaverse.data.local.dao.StoryDao
 import edu.ucne.literaverse.data.local.entities.UsuarioEntity
+import edu.ucne.literaverse.data.local.entities.ChapterEntity
+import edu.ucne.literaverse.data.local.entities.StoryEntity
 
 @Database(
-    entities = [UsuarioEntity::class],
-    version = 1,
+    entities = [
+        UsuarioEntity::class,
+        StoryEntity::class,
+        ChapterEntity::class],
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun usuarioDao(): UsuarioDao
+    abstract fun storyDao(): StoryDao
+    abstract fun chapterDao(): ChapterDao
 
     companion object {
         @Volatile
