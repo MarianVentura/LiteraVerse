@@ -27,4 +27,19 @@ sealed interface Screen {
 
     @Serializable
     data object Perfil : Screen
+
+    @Serializable
+    data object MyStories : Screen
+
+    @Serializable
+    data object CreateStory : Screen
+
+    @Serializable
+    data class StoryDetail(val storyId: Int) : Screen
+
+    @Serializable
+    data class ChapterEditor(val storyId: Int, val chapterId: Int) : Screen
+
+    @Serializable
+    data class CreateChapter(val storyId: Int) : Screen
 }
