@@ -9,14 +9,18 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import edu.ucne.literaverse.presentation.chaptereditor.ChapterEditorScreen
+import edu.ucne.literaverse.presentation.createstory.CreateStoryScreen
 import edu.ucne.literaverse.presentation.home.HomeScreen
 import edu.ucne.literaverse.presentation.login.LoginScreen
 import edu.ucne.literaverse.presentation.welcome.WelcomeScreen
 import edu.ucne.literaverse.presentation.register.RegisterScreen
 import edu.ucne.literaverse.presentation.library.LibraryScreen
+import edu.ucne.literaverse.presentation.mystories.MyStoriesScreen
 import edu.ucne.literaverse.presentation.perfil.PerfilScreen
 import edu.ucne.literaverse.presentation.search.SearchScreen
-import edu.ucne.literaverse.presentation.write.WriteScreen
+import edu.ucne.literaverse.presentation.storychapters.StoryChaptersScreen
+import edu.ucne.literaverse.presentation.write.WriterPanelScreen
 import androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun MainNavigation(navController: NavHostController) {
@@ -116,7 +120,7 @@ fun MainNavigation(navController: NavHostController) {
         }
 
         composable<Screen.Write> {
-            WriteScreen(
+            WriterPanelScreen(
                 onNavigateToHome = {
                     navController.navigate(Screen.Home) {
                         popUpTo(Screen.Home) { inclusive = true }
@@ -130,10 +134,75 @@ fun MainNavigation(navController: NavHostController) {
                 },
                 onNavigateToPerfil = {
                     navController.navigate(Screen.Perfil)
+                },
+                onNavigateToMyStories = {
+                    navController.navigate(Screen.MyStories)
+                },
+                onNavigateToCreateStory = {
+                    navController.navigate(Screen.CreateStory)
+                },
+                onNavigateToStoryDetail = { storyId ->
+                    navController.navigate(Screen.StoryDetail(storyId))
                 }
             )
         }
 
+        composable<Screen.MyStories> {
+            MyStoriesScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onNavigateToStoryDetail = { storyId ->
+                    navController.navigate(Screen.StoryDetail(storyId))
+                }
+            )
+        }
+
+        composable<Screen.CreateStory> {
+            CreateStoryScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onStoryCreated = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable<Screen.StoryDetail> { backStackEntry ->
+            StoryChaptersScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onNavigateToChapterEditor = { storyId, chapterId ->
+                    navController.navigate(Screen.ChapterEditor(storyId, chapterId))
+                },
+                onNavigateToCreateChapter = { storyId ->
+                    navController.navigate(Screen.CreateChapter(storyId))
+                }
+            )
+        }
+        composable<Screen.ChapterEditor> {
+            ChapterEditorScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onChapterSaved = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable<Screen.CreateChapter> {
+            ChapterEditorScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onChapterSaved = {
+                    navController.popBackStack()
+                }
+            )
+        }
         composable<Screen.Perfil> {
             PerfilScreen(
                 onNavigateToHome = {
