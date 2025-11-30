@@ -4,7 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import edu.ucne.literaverse.data.remote.Resource
+import edu.ucne.literaverse.data.local.TokenManager
 import edu.ucne.literaverse.domain.usecase.homeUseCases.GetHomeDataUseCase
+import edu.ucne.literaverse.domain.usecase.usuarioUseCases.LogoutUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,7 +16,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val getHomeDataUseCase: GetHomeDataUseCase
+    private val getHomeDataUseCase: GetHomeDataUseCase,
+    private val logoutUseCase: LogoutUseCase,
+    private val tokenManager: TokenManager
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HomeUiState())
@@ -35,6 +39,7 @@ class HomeViewModel @Inject constructor(
                 }
             }
             is HomeEvent.Refresh -> loadHomeData()
+            is HomeEvent.Logout -> logout()
         }
     }
 
@@ -96,6 +101,20 @@ class HomeViewModel @Inject constructor(
                         storiesByGenre = emptyList()
                     )
                 }
+            }
+            is Resource.Loading -> {}
+        }
+    }
+
+    private fun logout() = viewModelScope.launch {
+        val token = tokenManager.getToken() ?: return@launch
+
+        when (logoutUseCase(token)) {
+            is Resource.Success -> {
+                tokenManager.clearSession()
+            }
+            is Resource.Error -> {
+                tokenManager.clearSession()
             }
             is Resource.Loading -> {}
         }
