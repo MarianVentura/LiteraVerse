@@ -11,5 +11,7 @@ data class HomeUiState(
     val storiesByGenre: List<Story> = emptyList(),
     val selectedGenre: String? = null,
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val shouldNavigateToWelcome: Boolean = false,
+    val isLoggingOut: Boolean = false
 )
