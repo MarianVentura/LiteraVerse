@@ -34,6 +34,11 @@ fun MainNavigation(navController: NavHostController) {
                     navController.navigate(Screen.Login) {
                         popUpTo(Screen.Welcome) { inclusive = true }
                     }
+                },
+                onNavigateToHome = {
+                    navController.navigate(Screen.Home) {
+                        popUpTo(Screen.Welcome) { inclusive = true }
+                    }
                 }
             )
         }
@@ -77,6 +82,11 @@ fun MainNavigation(navController: NavHostController) {
                 },
                 onNavigateToPerfil = {
                     navController.navigate(Screen.Perfil)
+                },
+                onNavigateToWelcome = {
+                    navController.navigate(Screen.Welcome) {
+                        popUpTo(0) { inclusive = true }
+                    }
                 }
             )
         }
