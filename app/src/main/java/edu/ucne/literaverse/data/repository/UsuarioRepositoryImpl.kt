@@ -56,4 +56,23 @@ class UsuarioRepositoryImpl @Inject constructor(
     override suspend fun getUsuarios(): Resource<List<Usuario>> {
         return Resource.Error("Método no disponible")
     }
+
+    override suspend fun validateToken(token: String): Resource<Boolean> {
+        return when (val result = remoteDataSource.validateToken(token)) {
+            is Resource.Success -> {
+                if (result.data?.isValid == true) {
+                    Resource.Success(true)
+                } else {
+                    Resource.Error("Token inválido o expirado")
+                }
+            }
+            is Resource.Error -> Resource.Error(result.message ?: "Error al validar token")
+            is Resource.Loading -> Resource.Loading()
+        }
+    }
+
+    override suspend fun logout(token: String): Resource<Unit> {
+        return remoteDataSource.logout(token)
+    }
 }
+
