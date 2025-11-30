@@ -11,6 +11,7 @@ import edu.ucne.literaverse.data.remote.dto.StoryDetailResponse
 import edu.ucne.literaverse.data.remote.dto.StoryResponse
 import edu.ucne.literaverse.data.remote.dto.UpdateChapterRequest
 import edu.ucne.literaverse.data.remote.dto.UpdateStoryRequest
+import edu.ucne.literaverse.data.remote.dto.ValidateTokenResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -30,7 +31,7 @@ interface LiteraVerseApi {
     suspend fun logout(@Body token: String): Response<Unit>
 
     @POST("api/Auth/ValidateToken")
-    suspend fun validateToken(@Body token: String): Response<Map<String, Any>>
+    suspend fun validateToken(@Body token: String): Response<ValidateTokenResponse>
 
     @GET("api/Explore/featured")
     suspend fun getFeaturedStories(): Response<List<StoryResponse>>
