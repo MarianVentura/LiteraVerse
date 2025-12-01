@@ -43,6 +43,14 @@ class TokenManager @Inject constructor(
         prefs.edit().clear().apply()
     }
 
+    fun saveLoginDate(loginDate: String) {
+        prefs.edit().putString("login_date", loginDate).apply()
+    }
+
+    fun getLoginDate(): String? {
+        return prefs.getString("login_date", null)
+    }
+
     fun hasActiveSession(): Boolean {
         return getToken() != null && getUserId() != -1
     }
