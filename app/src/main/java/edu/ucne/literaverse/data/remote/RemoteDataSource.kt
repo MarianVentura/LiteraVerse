@@ -11,6 +11,7 @@ import edu.ucne.literaverse.data.remote.dto.StoryDetailResponse
 import edu.ucne.literaverse.data.remote.dto.StoryResponse
 import edu.ucne.literaverse.data.remote.dto.UpdateChapterRequest
 import edu.ucne.literaverse.data.remote.dto.UpdateStoryRequest
+import edu.ucne.literaverse.data.remote.dto.ValidateTokenResponse
 import javax.inject.Inject
 
 class RemoteDataSource @Inject constructor(
@@ -63,14 +64,14 @@ class RemoteDataSource @Inject constructor(
         }
     }
 
-    suspend fun validateToken(token: String): Resource<Map<String, Any>> {
+    suspend fun validateToken(token: String): Resource<ValidateTokenResponse> {
         return try {
             val response = literaVerseApi.validateToken(token)
             if (response.isSuccessful) {
                 response.body()?.let { Resource.Success(it) }
                     ?: Resource.Error("Respuesta vacía del servidor")
             } else {
-                Resource.Error("HTTP ${response.code()} ${response.message()}")
+                Resource.Error("Token inválido")
             }
         } catch (e: Exception) {
             Resource.Error(e.localizedMessage ?: "Error de red")

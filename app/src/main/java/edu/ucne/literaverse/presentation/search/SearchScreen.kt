@@ -19,6 +19,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import edu.ucne.literaverse.presentation.components.UserMenuBottomBar
+import edu.ucne.literaverse.presentation.components.BottomNavScreen
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -36,6 +38,23 @@ fun SearchScreen(
     onNavigateToHome: () -> Unit = {},
     onNavigateToLibrary: () -> Unit = {},
     onNavigateToWrite: () -> Unit = {},
+    onNavigateToPerfil: () -> Unit = {},
+    onLogout: () -> Unit = {}
+) {
+    Scaffold(
+        topBar = {
+            SearchTopBar()
+        },
+        bottomBar = {
+            UserMenuBottomBar(
+                currentScreen = BottomNavScreen.SEARCH,
+                onNavigateToHome = onNavigateToHome,
+                onNavigateToBuscar = {},
+                onNavigateToLibrary = onNavigateToLibrary,
+                onNavigateToWrite = onNavigateToWrite,
+                onNavigateToPerfil = onNavigateToPerfil,
+                onLogout = onLogout
+            )
     onNavigateToPerfil: () -> Unit = {}
 
 ) {
