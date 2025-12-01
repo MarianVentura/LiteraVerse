@@ -22,6 +22,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import edu.ucne.literaverse.domain.model.StoryDetail
+import edu.ucne.literaverse.presentation.components.UserMenuBottomBar
+import edu.ucne.literaverse.presentation.components.BottomNavScreen
 
 @Composable
 fun WriterPanelScreen(
@@ -32,7 +34,8 @@ fun WriterPanelScreen(
     onNavigateToPerfil: () -> Unit = {},
     onNavigateToMyStories: () -> Unit = {},
     onNavigateToCreateStory: () -> Unit = {},
-    onNavigateToStoryDetail: (Int) -> Unit = {}
+    onNavigateToStoryDetail: (Int) -> Unit = {},
+    onLogout: () -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -41,11 +44,14 @@ fun WriterPanelScreen(
             WriterPanelTopBar(userName = state.userName)
         },
         bottomBar = {
-            WriterPanelBottomBar(
+            UserMenuBottomBar(
+                currentScreen = BottomNavScreen.WRITE,
                 onNavigateToHome = onNavigateToHome,
                 onNavigateToBuscar = onNavigateToBuscar,
                 onNavigateToLibrary = onNavigateToLibrary,
-                onNavigateToPerfil = onNavigateToPerfil
+                onNavigateToWrite = {},
+                onNavigateToPerfil = onNavigateToPerfil,
+                onLogout = onLogout
             )
         }
     ) { padding ->
@@ -132,48 +138,7 @@ fun WriterPanelTopBar(userName: String) {
     )
 }
 
-@Composable
-fun WriterPanelBottomBar(
-    onNavigateToHome: () -> Unit,
-    onNavigateToBuscar: () -> Unit,
-    onNavigateToLibrary: () -> Unit,
-    onNavigateToPerfil: () -> Unit
-) {
-    NavigationBar(
-        containerColor = MaterialTheme.colorScheme.surface
-    ) {
-        NavigationBarItem(
-            icon = { Icon(Icons.Default.Home, contentDescription = null) },
-            label = { Text("Inicio", style = MaterialTheme.typography.labelSmall) },
-            selected = false,
-            onClick = onNavigateToHome
-        )
-        NavigationBarItem(
-            icon = { Icon(Icons.Default.Search, contentDescription = null) },
-            label = { Text("Buscar", style = MaterialTheme.typography.labelSmall) },
-            selected = false,
-            onClick = onNavigateToBuscar
-        )
-        NavigationBarItem(
-            icon = { Icon(Icons.Default.List, contentDescription = null) },
-            label = { Text("Biblioteca", style = MaterialTheme.typography.labelSmall) },
-            selected = false,
-            onClick = onNavigateToLibrary
-        )
-        NavigationBarItem(
-            icon = { Icon(Icons.Default.Edit, contentDescription = null) },
-            label = { Text("Escribir", style = MaterialTheme.typography.labelSmall) },
-            selected = true,
-            onClick = {}
-        )
-        NavigationBarItem(
-            icon = { Icon(Icons.Default.Person, contentDescription = null) },
-            label = { Text("Perfil", style = MaterialTheme.typography.labelSmall) },
-            selected = false,
-            onClick = onNavigateToPerfil
-        )
-    }
-}
+
 
 @Composable
 fun ContinueWritingCard(
