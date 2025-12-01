@@ -8,24 +8,30 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import edu.ucne.literaverse.presentation.components.UserMenuBottomBar
+import edu.ucne.literaverse.presentation.components.BottomNavScreen
 
 @Composable
 fun LibraryScreen(
     onNavigateToHome: () -> Unit = {},
     onNavigateToBuscar: () -> Unit = {},
     onNavigateToWrite: () -> Unit = {},
-    onNavigateToPerfil: () -> Unit = {}
+    onNavigateToPerfil: () -> Unit = {},
+    onLogout: () -> Unit = {}
 ) {
     Scaffold(
         topBar = {
             LibraryTopBar()
         },
         bottomBar = {
-            LibraryBottomBar(
+            UserMenuBottomBar(
+                currentScreen = BottomNavScreen.LIBRARY,
                 onNavigateToHome = onNavigateToHome,
                 onNavigateToBuscar = onNavigateToBuscar,
+                onNavigateToLibrary = {},
                 onNavigateToWrite = onNavigateToWrite,
-                onNavigateToPerfil = onNavigateToPerfil
+                onNavigateToPerfil = onNavigateToPerfil,
+                onLogout = onLogout
             )
         }
     ) { padding ->
@@ -61,45 +67,3 @@ fun LibraryTopBar() {
     )
 }
 
-@Composable
-fun LibraryBottomBar(
-    onNavigateToHome: () -> Unit,
-    onNavigateToBuscar: () -> Unit,
-    onNavigateToWrite: () -> Unit,
-    onNavigateToPerfil: () -> Unit
-) {
-    NavigationBar(
-        containerColor = MaterialTheme.colorScheme.surface
-    ) {
-        NavigationBarItem(
-            icon = { Icon(Icons.Default.Home, contentDescription = null) },
-            label = { Text("Inicio", style = MaterialTheme.typography.labelSmall) },
-            selected = false,
-            onClick = onNavigateToHome
-        )
-        NavigationBarItem(
-            icon = { Icon(Icons.Default.Search, contentDescription = null) },
-            label = { Text("Buscar", style = MaterialTheme.typography.labelSmall) },
-            selected = false,
-            onClick = onNavigateToBuscar
-        )
-        NavigationBarItem(
-            icon = { Icon(Icons.Default.List, contentDescription = null) },
-            label = { Text("Biblioteca", style = MaterialTheme.typography.labelSmall) },
-            selected = true,
-            onClick = {}
-        )
-        NavigationBarItem(
-            icon = { Icon(Icons.Default.Edit, contentDescription = null) },
-            label = { Text("Escribir", style = MaterialTheme.typography.labelSmall) },
-            selected = false,
-            onClick = onNavigateToWrite
-        )
-        NavigationBarItem(
-            icon = { Icon(Icons.Default.Person, contentDescription = null) },
-            label = { Text("Perfil", style = MaterialTheme.typography.labelSmall) },
-            selected = false,
-            onClick = onNavigateToPerfil
-        )
-    }
-}
