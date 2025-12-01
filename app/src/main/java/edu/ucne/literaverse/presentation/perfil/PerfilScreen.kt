@@ -8,24 +8,31 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import edu.ucne.literaverse.presentation.components.UserMenuBottomBar
+import edu.ucne.literaverse.presentation.components.BottomNavScreen
 
 @Composable
 fun PerfilScreen(
     onNavigateToHome: () -> Unit = {},
     onNavigateToBuscar: () -> Unit = {},
     onNavigateToLibrary: () -> Unit = {},
-    onNavigateToWrite: () -> Unit = {}
+    onNavigateToWrite: () -> Unit = {},
+    onLogout: () -> Unit = {}
+
 ) {
     Scaffold(
         topBar = {
             PerfilTopBar()
         },
         bottomBar = {
-            PerfilBottomBar(
+            UserMenuBottomBar(
+                currentScreen = BottomNavScreen.PERFIL,
                 onNavigateToHome = onNavigateToHome,
                 onNavigateToBuscar = onNavigateToBuscar,
                 onNavigateToLibrary = onNavigateToLibrary,
-                onNavigateToWrite = onNavigateToWrite
+                onNavigateToWrite = onNavigateToWrite,
+                onNavigateToPerfil = {},
+                onLogout = onLogout
             )
         }
     ) { padding ->
