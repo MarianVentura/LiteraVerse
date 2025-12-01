@@ -17,3 +17,5 @@ data class StoryResponse(
     val genre: String?,
     val tags: String?
 )
+
+
