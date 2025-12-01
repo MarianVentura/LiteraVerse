@@ -4,6 +4,7 @@ import edu.ucne.literaverse.data.local.dao.StoryDao
 import edu.ucne.literaverse.data.mappers.toCreateRequest
 import edu.ucne.literaverse.data.mappers.toDomain
 import edu.ucne.literaverse.data.mappers.toEntity
+import edu.ucne.literaverse.data.mappers.toStoryReader
 import edu.ucne.literaverse.data.mappers.toUpdateRequest
 import edu.ucne.literaverse.data.remote.RemoteDataSource
 import edu.ucne.literaverse.data.remote.Resource
@@ -11,6 +12,7 @@ import edu.ucne.literaverse.data.remote.dto.CreateStoryRequest
 import edu.ucne.literaverse.data.remote.dto.UpdateStoryRequest
 import edu.ucne.literaverse.data.remote.dto.StoryDetailResponse
 import edu.ucne.literaverse.domain.model.StoryDetail
+import edu.ucne.literaverse.domain.model.StoryReader
 import edu.ucne.literaverse.domain.repository.StoryRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -185,4 +187,18 @@ class StoryRepositoryImpl @Inject constructor(
             storyDao.markAsSynced(story.storyId)
         }
     }
+    override suspend fun getStoryForReader(storyId: Int): Resource<StoryReader> {
+        return when (val result = remoteDataSource.getStoryForReader(storyId)) {
+            is Resource.Success -> {
+                result.data?.let { (storyResponse, chaptersResponse) ->
+                    val storyReader = storyResponse.toStoryReader(chaptersResponse)
+                    Resource.Success(storyReader)
+                } ?: Resource.Error("Error al procesar datos")
+            }
+            is Resource.Error -> Resource.Error(result.message ?: "Error al obtener historia")
+            is Resource.Loading -> Resource.Loading()
+        }
+    }
 }
+
+
