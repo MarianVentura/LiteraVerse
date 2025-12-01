@@ -1,15 +1,14 @@
 package edu.ucne.literaverse.presentation.search
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.shrinkVertically
+
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -18,33 +17,44 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
-import edu.ucne.literaverse.presentation.components.UserMenuBottomBar
-import edu.ucne.literaverse.presentation.components.BottomNavScreen
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
-import edu.ucne.literaverse.domain.model.EstadoNovel
-import edu.ucne.literaverse.domain.model.Novel
-import edu.ucne.literaverse.domain.model.OrdenCriterio
+import edu.ucne.literaverse.domain.model.SortCriteria
+import edu.ucne.literaverse.domain.model.Story
+import edu.ucne.literaverse.presentation.components.UserMenuBottomBar
+import edu.ucne.literaverse.presentation.components.BottomNavScreen
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchScreen(
     viewModel: SearchViewModel = hiltViewModel(),
-    onNovelClick: (Int) -> Unit = {},
+    onStoryClick: (Int) -> Unit = {},
     onNavigateToHome: () -> Unit = {},
     onNavigateToLibrary: () -> Unit = {},
     onNavigateToWrite: () -> Unit = {},
     onNavigateToPerfil: () -> Unit = {},
     onLogout: () -> Unit = {}
 ) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+
+    LaunchedEffect(state.userMessage) {
+        state.userMessage?.let { message ->
+            snackbarHostState.showSnackbar(message)
+            viewModel.onEvent(SearchEvent.UserMessageShown)
+        }
+    }
+
+
     Scaffold(
-        topBar = {
-            SearchTopBar()
-        },
         bottomBar = {
             UserMenuBottomBar(
                 currentScreen = BottomNavScreen.SEARCH,
@@ -55,206 +65,195 @@ fun SearchScreen(
                 onNavigateToPerfil = onNavigateToPerfil,
                 onLogout = onLogout
             )
-    onNavigateToPerfil: () -> Unit = {}
-
-) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    val snackbarHostState = remember { SnackbarHostState() }
-
-    LaunchedEffect(state.userMessage) {
-        state.userMessage?.let { message ->
-            snackbarHostState.showSnackbar(message)
-            viewModel.onEvent(SearchEvent.UserMessageShown)
-        }
-    }
-
-    Scaffold(
+        },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
+                .padding(padding),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Header con barra de búsqueda
-            SearchHeader(
-                query = state.searchQuery,
-                onQueryChange = { viewModel.onEvent(SearchEvent.OnQueryChange(it)) },
-                onSearch = { viewModel.onEvent(SearchEvent.OnSearch) },
-                onToggleFilters = { viewModel.onEvent(SearchEvent.ToggleFilters) },
-                showFilters = state.showFilters
-            )
-
-            // Panel de filtros expandible
-            AnimatedVisibility(
-                visible = state.showFilters,
-                enter = expandVertically(),
-                exit = shrinkVertically()
-            ) {
-                FiltersPanel(
-                    selectedGenre = state.selectedGenre,
-                    selectedCategory = state.selectedCategory,
-                    selectedEstado = state.selectedEstado,
-                    selectedOrden = state.selectedOrden,
-                    onGenreSelect = { viewModel.onEvent(SearchEvent.OnGenreSelect(it)) },
-                    onCategorySelect = { viewModel.onEvent(SearchEvent.OnCategorySelect(it)) },
-                    onEstadoSelect = { viewModel.onEvent(SearchEvent.OnEstadoSelect(it)) },
-                    onOrdenChange = { viewModel.onEvent(SearchEvent.OnOrdenChange(it)) },
-                    onClearFilters = { viewModel.onEvent(SearchEvent.ClearFilters) }
+            item {
+                Text(
+                    text = "Buscar",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold
                 )
             }
 
-            // Resultados
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .weight(1f)
-            ) {
-                when {
-                    state.isLoading -> {
-                        CircularProgressIndicator(
-                            modifier = Modifier.align(Alignment.Center),
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
 
-                    state.novels.isEmpty() && state.hasSearched -> {
-                        EmptySearchResults(
-                            modifier = Modifier.align(Alignment.Center)
-                        )
-                    }
+            item {
+                SearchBar(
+                    query = state.searchQuery,
+                    onQueryChange = { viewModel.onEvent(SearchEvent.OnQueryChange(it)) },
+                    onSearch = { viewModel.onEvent(SearchEvent.OnSearch) },
+                    onToggleFilters = { viewModel.onEvent(SearchEvent.ToggleFilters) },
+                    showFilters = state.showFilters
+                )
+            }
 
-                    else -> {
-                        NovelsList(
-                            novels = state.novels,
-                            onNovelClick = {
-                                viewModel.onEvent(SearchEvent.OnNovelClick(it))
-                                onNovelClick(it)
-                            }
+
+            if (state.showFilters) {
+                item {
+                    FiltersSection(
+                        selectedGenre = state.selectedGenre,
+                        selectedStatus = state.selectedStatus,
+                        selectedSort = state.selectedSort,
+                        onGenreSelect = { viewModel.onEvent(SearchEvent.OnGenreSelect(it)) },
+                        onStatusSelect = { viewModel.onEvent(SearchEvent.OnStatusSelect(it)) },
+                        onSortChange = { viewModel.onEvent(SearchEvent.OnSortChange(it)) },
+                        onClearFilters = { viewModel.onEvent(SearchEvent.ClearFilters) }
+                    )
+                }
+            }
+
+
+            if (state.isLoading) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+            } else if (state.stories.isEmpty() && state.hasSearched) {
+                item {
+                    EmptySearchResults()
+                }
+            } else {
+                if (!state.hasSearched && state.stories.isNotEmpty()) {
+                    item {
+                        Text(
+                            text = "Historias Populares",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
                         )
                     }
+                }
+
+
+                items(state.stories) { story ->
+                    StoryCard(
+                        story = story,
+                        onClick = { onStoryClick(story.storyId) }
+                    )
                 }
             }
         }
     }
 }
 
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SearchHeader(
+fun SearchBar(
     query: String,
     onQueryChange: (String) -> Unit,
     onSearch: () -> Unit,
     onToggleFilters: () -> Unit,
     showFilters: Boolean
 ) {
-    Surface(
+    val focusManager = LocalFocusManager.current
+
+
+    Row(
         modifier = Modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surface,
-        shadowElevation = 4.dp
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            Text(
-                text = "Buscar",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(bottom = 12.dp)
-            )
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Barra de búsqueda
-                OutlinedTextField(
-                    value = query,
-                    onValueChange = onQueryChange,
-                    modifier = Modifier.weight(1f),
-                    placeholder = {
-                        Text(
-                            "Buscar historias, autores...",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = "Buscar",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    },
-                    trailingIcon = {
-                        if (query.isNotEmpty()) {
-                            IconButton(onClick = { onQueryChange("") }) {
-                                Icon(
-                                    imageVector = Icons.Default.Close,
-                                    contentDescription = "Limpiar"
-                                )
-                            }
-                        }
-                    },
-                    shape = RoundedCornerShape(24.dp),
-                    singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
-                    )
+        OutlinedTextField(
+            value = query,
+            onValueChange = onQueryChange,
+            modifier = Modifier.weight(1f),
+            placeholder = {
+                Text(
+                    text = "Buscar historias, autores...",
+                    style = MaterialTheme.typography.bodyMedium
                 )
-
-                // Botón de filtros
-                FilledTonalIconButton(
-                    onClick = onToggleFilters,
-                    modifier = Modifier.size(56.dp),
-                    colors = IconButtonDefaults.filledTonalIconButtonColors(
-                        containerColor = if (showFilters)
-                            MaterialTheme.colorScheme.primaryContainer
-                        else
-                            MaterialTheme.colorScheme.surfaceVariant
-                    )
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.FilterList,
-                        contentDescription = "Filtros",
-                        tint = if (showFilters)
-                            MaterialTheme.colorScheme.onPrimaryContainer
-                        else
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+            },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = null
+                )
+            },
+            trailingIcon = {
+                if (query.isNotBlank()) {
+                    IconButton(onClick = { onQueryChange("") }) {
+                        Icon(
+                            imageVector = Icons.Default.Clear,
+                            contentDescription = null
+                        )
+                    }
                 }
-            }
+            },
+            singleLine = true,
+            shape = RoundedCornerShape(12.dp),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+            keyboardActions = KeyboardActions(
+                onSearch = {
+                    onSearch()
+                    focusManager.clearFocus()
+                }
+            ),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline
+            )
+        )
+
+
+        IconButton(
+            onClick = onToggleFilters,
+            modifier = Modifier
+                .size(56.dp)
+                .background(
+                    color = if (showFilters)
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.primaryContainer,
+                    shape = RoundedCornerShape(12.dp)
+                )
+        ) {
+            Icon(
+                imageVector = Icons.Default.FilterList,
+                contentDescription = null,
+                tint = if (showFilters)
+                    MaterialTheme.colorScheme.onPrimary
+                else
+                    MaterialTheme.colorScheme.onPrimaryContainer
+            )
         }
     }
 }
 
+
 @Composable
-private fun FiltersPanel(
+fun FiltersSection(
     selectedGenre: String?,
-    selectedCategory: String?,
-    selectedEstado: EstadoNovel?,
-    selectedOrden: OrdenCriterio,
+    selectedStatus: String?,
+    selectedSort: SortCriteria,
     onGenreSelect: (String?) -> Unit,
-    onCategorySelect: (String?) -> Unit,
-    onEstadoSelect: (EstadoNovel?) -> Unit,
-    onOrdenChange: (OrdenCriterio) -> Unit,
+    onStatusSelect: (String?) -> Unit,
+    onSortChange: (SortCriteria) -> Unit,
     onClearFilters: () -> Unit
 ) {
-    Surface(
+    Card(
         modifier = Modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            modifier = Modifier.padding(16.dp)
         ) {
-            // Header de filtros
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -263,228 +262,209 @@ private fun FiltersPanel(
                 Text(
                     text = "Filtros",
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    fontWeight = FontWeight.Bold
                 )
-
                 TextButton(onClick = onClearFilters) {
-                    Text(
-                        "Limpiar todo",
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                    Text(text = "Limpiar")
                 }
             }
 
-            // Género
-            FilterSection(
-                title = "Género",
-                items = listOf("Todos", "Fantasía", "Romance", "Ciencia Ficción", "Misterio", "Drama", "Thriller"),
-                selectedItem = selectedGenre,
-                onItemSelect = { onGenreSelect(if (it == "Todos") null else it) }
-            )
 
-            // Estado
-            FilterSection(
-                title = "Estado",
-                items = listOf("Todos") + EstadoNovel.entries.map { it.displayName },
-                selectedItem = selectedEstado?.displayName,
-                onItemSelect = {
-                    onEstadoSelect(
-                        if (it == "Todos") null
-                        else EstadoNovel.entries.find { estado -> estado.displayName == it }
-                    )
-                }
-            )
+            Spacer(modifier = Modifier.height(12.dp))
 
-            // Ordenar por
-            FilterSection(
-                title = "Ordenar por",
-                items = OrdenCriterio.entries.map { it.displayName },
-                selectedItem = selectedOrden.displayName,
-                onItemSelect = { displayName ->
-                    OrdenCriterio.entries.find { it.displayName == displayName }
-                        ?.let { onOrdenChange(it) }
-                }
-            )
-        }
-    }
-}
 
-@Composable
-private fun FilterSection(
-    title: String,
-    items: List<String>,
-    selectedItem: String?,
-    onItemSelect: (String) -> Unit
-) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(items) { item ->
-                FilterChip(
-                    selected = item == selectedItem || (selectedItem == null && item == "Todos"),
-                    onClick = { onItemSelect(item) },
-                    label = { Text(item) },
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun NovelsList(
-    novels: List<Novel>,
-    onNovelClick: (Int) -> Unit
-) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        item {
             Text(
-                text = "${novels.size} resultado${if (novels.size != 1) "s" else ""}",
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(bottom = 8.dp)
+                text = "Género",
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold
             )
-        }
+            Spacer(modifier = Modifier.height(8.dp))
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(genreOptions) { genre ->
+                    FilterChip(
+                        selected = selectedGenre == genre,
+                        onClick = {
+                            onGenreSelect(if (selectedGenre == genre) null else genre)
+                        },
+                        label = {
+                            Text(
+                                text = genre,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                    )
+                }
+            }
 
-        items(
-            items = novels,
-            key = { it.id }
-        ) { novel ->
-            NovelCard(
-                novel = novel,
-                onClick = { onNovelClick(novel.id) }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+
+            Text(
+                text = "Estado",
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold
             )
+            Spacer(modifier = Modifier.height(8.dp))
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(statusOptions) { status ->
+                    FilterChip(
+                        selected = selectedStatus == status.value,
+                        onClick = {
+                            onStatusSelect(if (selectedStatus == status.value) null else status.value)
+                        },
+                        label = {
+                            Text(
+                                text = status.label,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                    )
+                }
+            }
+
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+
+            Text(
+                text = "Ordenar por",
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(sortOptions) { sort ->
+                    FilterChip(
+                        selected = selectedSort == sort.criteria,
+                        onClick = { onSortChange(sort.criteria) },
+                        label = {
+                            Text(
+                                text = sort.label,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                    )
+                }
+            }
         }
     }
 }
 
+
 @Composable
-private fun NovelCard(
-    novel: Novel,
+fun StoryCard(
+    story: Story,
     onClick: () -> Unit
 ) {
     ElevatedCard(
+        onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
+            .height(140.dp),
         shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp)
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier.fillMaxSize()
         ) {
-            // Portada
             AsyncImage(
-                model = novel.portada,
-                contentDescription = novel.titulo,
+                model = story.coverImageUrl,
+                contentDescription = null,
                 modifier = Modifier
-                    .width(80.dp)
-                    .height(120.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                    .width(100.dp)
+                    .fillMaxHeight()
+                    .clip(RoundedCornerShape(topStart = 12.dp, bottomStart = 12.dp)),
                 contentScale = ContentScale.Crop
             )
 
-            // Información
+
             Column(
                 modifier = Modifier
-                    .weight(1f)
-                    .height(120.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
+                    .fillMaxSize()
+                    .padding(12.dp),
+                verticalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    text = novel.titulo,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-
-                Text(
-                    text = "por ${novel.autor}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                // Género tag
-                novel.genero?.let {
-                    Surface(
-                        shape = RoundedCornerShape(12.dp),
-                        color = MaterialTheme.colorScheme.secondaryContainer
-                    ) {
-                        Text(
-                            text = it,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                        )
-                    }
+                Column {
+                    Text(
+                        text = story.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = story.author,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
 
-                Spacer(modifier = Modifier.weight(1f))
 
-                // Stats
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    StatItem(
-                        icon = Icons.Default.Visibility,
-                        value = formatNumber(novel.vistas)
-                    )
-                    StatItem(
-                        icon = Icons.Default.Favorite,
-                        value = formatNumber(novel.likes)
-                    )
-                    StatItem(
-                        icon = Icons.Default.Book,
-                        value = "${novel.capitulos}"
-                    )
-                }
-
-                // Estado
-                Surface(
-                    shape = RoundedCornerShape(8.dp),
-                    color = when (novel.estado) {
-                        "Completa" -> MaterialTheme.colorScheme.tertiaryContainer
-                        "En progreso" -> MaterialTheme.colorScheme.primaryContainer
-                        else -> MaterialTheme.colorScheme.surfaceVariant
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Visibility,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = story.reads.toString(),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Book,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "${story.chapters} caps",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
-                ) {
-                    Text(
-                        text = novel.estado,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = when (novel.estado) {
-                            "Completa" -> MaterialTheme.colorScheme.onTertiaryContainer
-                            "En progreso" -> MaterialTheme.colorScheme.onPrimaryContainer
-                            else -> MaterialTheme.colorScheme.onSurfaceVariant
+
+
+                    AssistChip(
+                        onClick = {},
+                        label = {
+                            Text(
+                                text = story.status,
+                                style = MaterialTheme.typography.labelSmall
+                            )
                         },
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                        colors = AssistChipDefaults.assistChipColors(
+                            containerColor = if (story.status == "Publicado")
+                                MaterialTheme.colorScheme.primaryContainer
+                            else
+                                MaterialTheme.colorScheme.secondaryContainer
+                        )
                     )
                 }
             }
@@ -492,37 +472,15 @@ private fun NovelCard(
     }
 }
 
-@Composable
-private fun StatItem(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    value: String
-) {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            modifier = Modifier.size(14.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
 
 @Composable
-private fun EmptySearchResults(
-    modifier: Modifier = Modifier
-) {
+fun EmptySearchResults() {
     Column(
-        modifier = modifier.padding(32.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 48.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.Center
     ) {
         Icon(
             imageVector = Icons.Default.SearchOff,
@@ -530,26 +488,47 @@ private fun EmptySearchResults(
             modifier = Modifier.size(64.dp),
             tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
-
+        Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = "No se encontraron resultados",
             style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-
+        Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "Intenta con otros términos de búsqueda o filtros",
+            text = "Intenta con otros filtros o términos de búsqueda",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
 
-private fun formatNumber(number: Int): String {
-    return when {
-        number >= 1_000_000 -> "${number / 1_000_000}M"
-        number >= 1_000 -> "${number / 1_000}K"
-        else -> number.toString()
-    }
-}
+
+private val genreOptions = listOf(
+    "Fantasía",
+    "Romance",
+    "Ciencia Ficción",
+    "Misterio",
+    "Aventura",
+    "Drama",
+    "Horror",
+    "Comedia"
+)
+
+
+private data class StatusOption(val label: String, val value: String)
+private val statusOptions = listOf(
+    StatusOption("Publicado", "published"),
+    StatusOption("Borrador", "draft")
+)
+
+
+private data class SortOption(val label: String, val criteria: SortCriteria)
+private val sortOptions = listOf(
+    SortOption("Relevancia", SortCriteria.RELEVANCE),
+    SortOption("Popularidad", SortCriteria.POPULARITY),
+    SortOption("Recientes", SortCriteria.RECENT),
+    SortOption("Más leídos", SortCriteria.MOST_READ)
+)
+
+
