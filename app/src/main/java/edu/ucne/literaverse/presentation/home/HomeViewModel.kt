@@ -107,16 +107,22 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun logout() = viewModelScope.launch {
-        val token = tokenManager.getToken() ?: return@launch
+        _state.update { it.copy(isLoggingOut = true)}
 
-        when (logoutUseCase(token)) {
-            is Resource.Success -> {
-                tokenManager.clearSession()
+        val token = tokenManager.getToken()
+
+        if (token != null) {
+            when (logoutUseCase(token)) {
+                is Resource.Success -> {
+                    tokenManager.clearSession()
+                }
+                is Resource.Error -> {
+                    tokenManager.clearSession()
+                }
+                is Resource.Loading -> {}
             }
-            is Resource.Error -> {
-                tokenManager.clearSession()
-            }
-            is Resource.Loading -> {}
+        } else {
+            tokenManager.clearSession()
         }
     }
 }
