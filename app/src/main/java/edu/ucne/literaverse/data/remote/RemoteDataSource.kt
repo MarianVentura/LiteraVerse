@@ -189,6 +189,27 @@ class RemoteDataSource @Inject constructor(
         }
     }
 
+    suspend fun getStoryForReader(storyId: Int): Resource<Pair<StoryDetailResponse, List<ChapterResponse>>> {
+        return try {
+            val storyResponse = literaVerseApi.getStoryById(storyId)
+            if (!storyResponse.isSuccessful) {
+                return Resource.Error("HTTP ${storyResponse.code()} ${storyResponse.message()}")
+            }
+
+            val story = storyResponse.body() ?: return Resource.Error("Historia no encontrada")
+
+            val chaptersResponse = literaVerseApi.getChaptersByStory(storyId)
+            if (!chaptersResponse.isSuccessful) {
+                return Resource.Error("HTTP ${chaptersResponse.code()} ${chaptersResponse.message()}")
+            }
+
+            val chapters = chaptersResponse.body() ?: emptyList()
+            Resource.Success(Pair(story, chapters))
+        } catch (e: Exception) {
+            Resource.Error(e.localizedMessage ?: "Error de red")
+        }
+    }
+
     suspend fun updateStory(storyId: Int, request: UpdateStoryRequest): Resource<StoryResponse> {
         return try {
             val response = literaVerseApi.updateStory(storyId, request)
