@@ -83,8 +83,8 @@ fun MainNavigation(navController: NavHostController) {
                 onNavigateToPerfil = {
                     navController.navigate(Screen.Perfil)
                 },
-                onNavigateToWelcome = {
-                    navController.navigate(Screen.Welcome) {
+                onNavigateToLogin = {
+                    navController.navigate(Screen.Login) {
                         popUpTo(0) { inclusive = true }
                     }
                 }
@@ -106,6 +106,11 @@ fun MainNavigation(navController: NavHostController) {
                 },
                 onNavigateToPerfil = {
                     navController.navigate(Screen.Perfil)
+                },
+                onLogout = {
+                    navController.navigate(Screen.Login) {
+                        popUpTo(0) { inclusive = true }
+                    }
                 }
             )
         }
@@ -125,6 +130,11 @@ fun MainNavigation(navController: NavHostController) {
                 },
                 onNavigateToPerfil = {
                     navController.navigate(Screen.Perfil)
+                },
+                onLogout = {
+                    navController.navigate(Screen.Login) {
+                        popUpTo(0) { inclusive = true }
+                    }
                 }
             )
         }
@@ -153,6 +163,11 @@ fun MainNavigation(navController: NavHostController) {
                 },
                 onNavigateToStoryDetail = { storyId ->
                     navController.navigate(Screen.StoryDetail(storyId))
+                },
+                onLogout = {
+                    navController.navigate(Screen.Login) {
+                        popUpTo(0) { inclusive = true }
+                    }
                 }
             )
         }
@@ -228,6 +243,11 @@ fun MainNavigation(navController: NavHostController) {
                 },
                 onNavigateToWrite = {
                     navController.navigate(Screen.Write)
+                },
+                onLogout = {
+                    navController.navigate(Screen.Login) {
+                        popUpTo(0) { inclusive = true }
+                    }
                 }
             )
         }
