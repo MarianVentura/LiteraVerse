@@ -2,6 +2,7 @@ package edu.ucne.literaverse.domain.repository
 
 import edu.ucne.literaverse.data.remote.Resource
 import edu.ucne.literaverse.domain.model.StoryDetail
+import edu.ucne.literaverse.domain.model.StoryReader
 import kotlinx.coroutines.flow.Flow
 
 interface StoryRepository {
@@ -13,4 +14,6 @@ interface StoryRepository {
     suspend fun publishStory(storyId: Int): Resource<Unit>
     suspend fun unpublishStory(storyId: Int): Resource<Unit>
     suspend fun syncStories()
+
+    suspend fun getStoryForReader(storyId: Int): Resource<StoryReader>
 }
