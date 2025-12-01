@@ -9,6 +9,8 @@ import edu.ucne.literaverse.data.remote.dto.RegisterRequest
 import edu.ucne.literaverse.data.remote.dto.GenreResponse
 import edu.ucne.literaverse.data.remote.dto.StoryDetailResponse
 import edu.ucne.literaverse.data.remote.dto.StoryResponse
+import edu.ucne.literaverse.data.remote.dto.NovelDto
+import edu.ucne.literaverse.data.remote.dto.SearchNovelsResponse
 import edu.ucne.literaverse.data.remote.dto.UpdateChapterRequest
 import edu.ucne.literaverse.data.remote.dto.UpdateStoryRequest
 import edu.ucne.literaverse.data.remote.dto.ValidateTokenResponse
@@ -19,6 +21,7 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface LiteraVerseApi {
     @POST("api/Auth/Login")
