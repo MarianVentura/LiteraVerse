@@ -6,6 +6,7 @@ import java.time.LocalDateTime
 data class StoryDetailResponse(
     val storyId: Int,
     val userId: Int,
+    val userName: String?,
     val title: String,
     val synopsis: String,
     val coverImageUrl: String?,
