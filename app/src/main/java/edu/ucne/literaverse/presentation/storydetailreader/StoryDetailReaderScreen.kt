@@ -16,7 +16,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -80,7 +79,7 @@ fun StoryDetailReaderScreen(
                 StoryDetailReaderContent(
                     story = state.story!!,
                     isFavorite = state.isFavorite,
-                    hasLiked = state.hasLiked,
+                    isInLibrary = state.isInLibrary,
                     onEvent = viewModel::onEvent,
                     onNavigateBack = onNavigateBack,
                     onNavigateToChapter = onNavigateToChapter
@@ -94,7 +93,7 @@ fun StoryDetailReaderScreen(
 fun StoryDetailReaderContent(
     story: StoryReader,
     isFavorite: Boolean,
-    hasLiked: Boolean,
+    isInLibrary: Boolean,
     onEvent: (StoryDetailReaderEvent) -> Unit,
     onNavigateBack: () -> Unit,
     onNavigateToChapter: (Int, Int) -> Unit
@@ -105,8 +104,7 @@ fun StoryDetailReaderContent(
         item {
             StoryHeroSection(
                 story = story,
-                onNavigateBack = onNavigateBack,
-                onShare = { onEvent(StoryDetailReaderEvent.OnShare) }
+                onNavigateBack = onNavigateBack
             )
         }
 
@@ -114,10 +112,10 @@ fun StoryDetailReaderContent(
             StoryInfoSection(
                 story = story,
                 isFavorite = isFavorite,
-                hasLiked = hasLiked,
+                isInLibrary = isInLibrary,
                 onStartReading = { onEvent(StoryDetailReaderEvent.OnStartReading) },
                 onToggleFavorite = { onEvent(StoryDetailReaderEvent.OnToggleFavorite) },
-                onToggleLike = { onEvent(StoryDetailReaderEvent.OnToggleLike) }
+                onAddToLibrary = { onEvent(StoryDetailReaderEvent.OnAddToLibrary) }
             )
         }
 
@@ -128,7 +126,6 @@ fun StoryDetailReaderContent(
         item {
             StatsSection(
                 viewCount = story.viewCount,
-                likeCount = story.likeCount,
                 chapterCount = story.publishedChapters.size
             )
         }
@@ -158,8 +155,7 @@ fun StoryDetailReaderContent(
 @Composable
 fun StoryHeroSection(
     story: StoryReader,
-    onNavigateBack: () -> Unit,
-    onShare: () -> Unit
+    onNavigateBack: () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -195,8 +191,8 @@ fun StoryHeroSection(
                 .background(
                     brush = Brush.verticalGradient(
                         colors = listOf(
-                            Color.Black.copy(alpha = 0.3f),
-                            Color.Black.copy(alpha = 0.7f)
+                            MaterialTheme.colorScheme.scrim.copy(alpha = 0.3f),
+                            MaterialTheme.colorScheme.scrim.copy(alpha = 0.7f)
                         ),
                         startY = 0f,
                         endY = 1200f
@@ -209,7 +205,7 @@ fun StoryHeroSection(
                 .fillMaxWidth()
                 .padding(16.dp)
                 .statusBarsPadding(),
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.Start
         ) {
             IconButton(
                 onClick = onNavigateBack,
@@ -223,19 +219,6 @@ fun StoryHeroSection(
                     tint = MaterialTheme.colorScheme.onSurface
                 )
             }
-
-            IconButton(
-                onClick = onShare,
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f))
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Share,
-                    contentDescription = "Compartir",
-                    tint = MaterialTheme.colorScheme.onSurface
-                )
-            }
         }
     }
 }
@@ -244,10 +227,10 @@ fun StoryHeroSection(
 fun StoryInfoSection(
     story: StoryReader,
     isFavorite: Boolean,
-    hasLiked: Boolean,
+    isInLibrary: Boolean,
     onStartReading: () -> Unit,
     onToggleFavorite: () -> Unit,
-    onToggleLike: () -> Unit
+    onAddToLibrary: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -317,19 +300,6 @@ fun StoryInfoSection(
             Spacer(modifier = Modifier.width(8.dp))
 
             Icon(
-                imageVector = Icons.Default.Favorite,
-                contentDescription = null,
-                modifier = Modifier.size(20.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
-            Text(
-                text = "${story.likeCount}",
-                style = MaterialTheme.typography.bodyMedium
-            )
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Icon(
                 imageVector = Icons.Default.MenuBook,
                 contentDescription = null,
                 modifier = Modifier.size(20.dp),
@@ -349,13 +319,13 @@ fun StoryInfoSection(
                 onClick = onStartReading,
                 modifier = Modifier.weight(1f),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFFFC107)
+                    containerColor = MaterialTheme.colorScheme.primary
                 ),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Text(
                     text = "Comenzar a Leer",
-                    color = Color.Black,
+                    color = MaterialTheme.colorScheme.onPrimary,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -378,19 +348,19 @@ fun StoryInfoSection(
             }
 
             IconButton(
-                onClick = onToggleLike,
+                onClick = onAddToLibrary,
                 modifier = Modifier
                     .size(56.dp)
                     .clip(RoundedCornerShape(12.dp))
                     .background(
-                        if (hasLiked) MaterialTheme.colorScheme.primaryContainer
+                        if (isInLibrary) MaterialTheme.colorScheme.primaryContainer
                         else MaterialTheme.colorScheme.surfaceVariant
                     )
             ) {
                 Icon(
-                    imageVector = Icons.Default.BookmarkBorder,
-                    contentDescription = "Guardar",
-                    tint = if (hasLiked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                    imageVector = if (isInLibrary) Icons.Default.LibraryBooks else Icons.Default.LibraryAdd,
+                    contentDescription = "Biblioteca",
+                    tint = if (isInLibrary) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -431,7 +401,6 @@ fun SynopsisSection(synopsis: String) {
 @Composable
 fun StatsSection(
     viewCount: Int,
-    likeCount: Int,
     chapterCount: Int
 ) {
     Row(
@@ -443,12 +412,6 @@ fun StatsSection(
         StatCard(
             value = formatNumber(viewCount),
             label = "Lecturas",
-            color = Color(0xFFFFC107)
-        )
-
-        StatCard(
-            value = formatNumber(likeCount),
-            label = "Me gusta",
             color = MaterialTheme.colorScheme.primary
         )
 
@@ -464,11 +427,11 @@ fun StatsSection(
 fun StatCard(
     value: String,
     label: String,
-    color: Color
+    color: androidx.compose.ui.graphics.Color
 ) {
     Card(
         modifier = Modifier
-            .width(100.dp)
+            .width(140.dp)
             .height(80.dp),
         colors = CardDefaults.cardColors(
             containerColor = color.copy(alpha = 0.1f)
