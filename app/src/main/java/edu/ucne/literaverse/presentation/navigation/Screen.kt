@@ -46,5 +46,8 @@ sealed interface Screen {
     @Serializable
     data class CreateChapter(val storyId: Int) : Screen
 
+    @Serializable
+    data class ChapterReader(val storyId: Int, val chapterId: Int) : Screen
+
 
 }

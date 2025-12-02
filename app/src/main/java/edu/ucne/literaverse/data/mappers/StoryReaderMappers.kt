@@ -11,12 +11,11 @@ fun StoryDetailResponse.toStoryReader(chapters: List<ChapterResponse>): StoryRea
         title = title,
         synopsis = synopsis,
         coverImageUrl = coverImageUrl,
-        author = "Usuario $userId",
+        author = userName ?: "Usuario $userId",
         authorId = userId,
         genre = genre,
         tags = tags,
         viewCount = viewCount,
-        likeCount = 0,
         publishedChapters = chapters
             .filter { it.isPublished && !it.isDraft }
             .map { it.toDomain() }

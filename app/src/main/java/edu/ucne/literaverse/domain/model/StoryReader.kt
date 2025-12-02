@@ -10,6 +10,5 @@ data class StoryReader(
     val genre: String?,
     val tags: String?,
     val viewCount: Int,
-    val likeCount: Int,
     val publishedChapters: List<Chapter>
 )

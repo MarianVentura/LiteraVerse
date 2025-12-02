@@ -5,7 +5,8 @@ sealed interface StoryDetailReaderEvent {
     data class OnChapterClick(val chapterId: Int) : StoryDetailReaderEvent
     object OnStartReading : StoryDetailReaderEvent
     object OnToggleFavorite : StoryDetailReaderEvent
-    object OnToggleLike : StoryDetailReaderEvent
-    object OnShare : StoryDetailReaderEvent
+
+    object OnAddToLibrary : StoryDetailReaderEvent
+
     object UserMessageShown : StoryDetailReaderEvent
 }

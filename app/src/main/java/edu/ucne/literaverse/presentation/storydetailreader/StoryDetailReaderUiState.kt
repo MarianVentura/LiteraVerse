@@ -8,5 +8,5 @@ data class StoryDetailReaderUiState(
     val error: String? = null,
     val userMessage: String? = null,
     val isFavorite: Boolean = false,
-    val hasLiked: Boolean = false
+    val isInLibrary: Boolean = false
 )
