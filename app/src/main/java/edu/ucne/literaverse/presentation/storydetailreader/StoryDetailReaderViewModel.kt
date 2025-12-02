@@ -34,8 +34,7 @@ class StoryDetailReaderViewModel @Inject constructor(
             is StoryDetailReaderEvent.OnChapterClick -> {}
             is StoryDetailReaderEvent.OnStartReading -> startReading()
             is StoryDetailReaderEvent.OnToggleFavorite -> toggleFavorite()
-            is StoryDetailReaderEvent.OnToggleLike -> toggleLike()
-            is StoryDetailReaderEvent.OnShare -> shareStory()
+            is StoryDetailReaderEvent.OnAddToLibrary -> addToLibrary()
             is StoryDetailReaderEvent.UserMessageShown -> clearMessage()
         }
     }
@@ -83,18 +82,12 @@ class StoryDetailReaderViewModel @Inject constructor(
         }
     }
 
-    private fun toggleLike() {
+    private fun addToLibrary() {
         _state.update {
             it.copy(
-                hasLiked = !it.hasLiked,
-                userMessage = if (!it.hasLiked) "Te gustó esta historia" else "Ya no te gusta esta historia"
+                isInLibrary = !it.isInLibrary,
+                userMessage = if (!it.isInLibrary) "Agregado a tu biblioteca" else "Eliminado de tu biblioteca"
             )
-        }
-    }
-
-    private fun shareStory() {
-        _state.update {
-            it.copy(userMessage = "Compartir funcionalidad pendiente")
         }
     }
 
