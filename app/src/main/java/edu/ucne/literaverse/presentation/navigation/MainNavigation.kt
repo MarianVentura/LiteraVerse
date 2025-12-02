@@ -16,13 +16,16 @@ import edu.ucne.literaverse.presentation.login.LoginScreen
 import edu.ucne.literaverse.presentation.welcome.WelcomeScreen
 import edu.ucne.literaverse.presentation.register.RegisterScreen
 import edu.ucne.literaverse.presentation.library.LibraryScreen
+import edu.ucne.literaverse.presentation.storydetailreader.StoryDetailReaderScreen
+import edu.ucne.literaverse.presentation.chapterreader.ChapterReaderScreen
 import edu.ucne.literaverse.presentation.mystories.MyStoriesScreen
 import edu.ucne.literaverse.presentation.perfil.PerfilScreen
 import edu.ucne.literaverse.presentation.search.SearchScreen
 import edu.ucne.literaverse.presentation.storychapters.StoryChaptersScreen
 import edu.ucne.literaverse.presentation.write.WriterPanelScreen
 import androidx.compose.ui.tooling.preview.Preview
-import edu.ucne.literaverse.presentation.storydetailreader.StoryDetailReaderScreen
+
+
 
 @Composable
 fun MainNavigation(navController: NavHostController) {
@@ -234,14 +237,22 @@ fun MainNavigation(navController: NavHostController) {
                 }
             )
         }
+
         composable<Screen.StoryDetailReader> {
             StoryDetailReaderScreen(
                 onNavigateBack = {
                     navController.popBackStack()
                 },
                 onNavigateToChapter = { storyId, chapterId ->
-                    // TODO: Implementar navegación al lector de capítulos
-                    navController.navigate(Screen.ChapterEditor(storyId, chapterId))
+                    navController.navigate(Screen.ChapterReader(storyId, chapterId))
+                }
+            )
+        }
+
+        composable<Screen.ChapterReader> {
+            ChapterReaderScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
                 }
             )
         }
