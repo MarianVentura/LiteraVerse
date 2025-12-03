@@ -12,8 +12,10 @@ import edu.ucne.literaverse.data.remote.dto.ReadingProgressResponse
 import edu.ucne.literaverse.data.remote.dto.GenreResponse
 import edu.ucne.literaverse.data.remote.dto.StoryDetailResponse
 import edu.ucne.literaverse.data.remote.dto.StoryResponse
+import edu.ucne.literaverse.data.remote.dto.SessionResponse
 import edu.ucne.literaverse.data.remote.dto.UpdateChapterRequest
 import edu.ucne.literaverse.data.remote.dto.UpdateStoryRequest
+import edu.ucne.literaverse.data.remote.dto.UserProfileResponse
 import edu.ucne.literaverse.data.remote.dto.ValidateTokenResponse
 import retrofit2.Response
 import retrofit2.http.Body
@@ -157,5 +159,14 @@ interface LiteraVerseApi {
 
     @GET("api/Library/{userId}/completed")
     suspend fun getCompletedStories(@Path("userId") userId: Int): Response<List<StoryResponse>>
+
+    @GET("api/Users/{userId}")
+    suspend fun getUserProfile(@Path("userId") userId: Int): Response<UserProfileResponse>
+
+    @GET("api/Auth/Sessions/{userId}")
+    suspend fun getUserSessions(@Path("userId") userId: Int): Response<List<SessionResponse>>
+
+    @POST("api/Auth/LogoutAll/{userId}")
+    suspend fun logoutAllSessions(@Path("userId") userId: Int): Response<Unit>
 }
 
