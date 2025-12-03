@@ -128,8 +128,9 @@ fun StoryDetailReaderContent(
                 story = story,
                 isFavorite = isFavorite,
                 isInLibrary = isInLibrary,
-                onStartReading = { onEvent(StoryDetailReaderEvent.OnStartReading) },
-                onToggleFavorite = { onEvent(StoryDetailReaderEvent.OnToggleFavorite) },
+                onStartReading = {
+                    onEvent(StoryDetailReaderEvent.OnStartReading(onNavigateToChapter))
+                },                onToggleFavorite = { onEvent(StoryDetailReaderEvent.OnToggleFavorite) },
                 onAddToLibrary = { onEvent(StoryDetailReaderEvent.ShowLibraryMenu) }
             )
         }
