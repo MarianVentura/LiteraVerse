@@ -8,10 +8,6 @@ class UpdateReadingStatusUseCase @Inject constructor(
     private val repository: LibraryRepository
 ) {
     suspend operator fun invoke(userId: Int, storyId: Int, isReading: Boolean): Resource<Unit> {
-        return if (isReading) {
-            repository.addFavorite(userId, storyId)
-        } else {
-            repository.removeFavorite(userId, storyId)
-        }
+        return repository.updateReadingStatus(userId, storyId, isReading)
     }
 }
