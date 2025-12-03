@@ -25,6 +25,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import edu.ucne.literaverse.domain.model.Chapter
 import edu.ucne.literaverse.domain.model.StoryReader
+import edu.ucne.literaverse.presentation.components.AddToLibraryMenu
+import edu.ucne.literaverse.presentation.components.LibraryStates
 
 @Composable
 fun StoryDetailReaderScreen(
@@ -87,6 +89,19 @@ fun StoryDetailReaderScreen(
             }
         }
     }
+    if (state.showLibraryMenu) {
+        AddToLibraryMenu(
+            currentStates = LibraryStates(
+                isFavorite = state.isFavorite,
+                isReading = state.isReading,
+                isCompleted = state.isCompleted
+            ),
+            onDismiss = { viewModel.onEvent(StoryDetailReaderEvent.DismissLibraryMenu) },
+            onSave = { states ->
+                viewModel.onEvent(StoryDetailReaderEvent.UpdateLibraryStates(states))
+            }
+        )
+    }
 }
 
 @Composable
@@ -115,7 +130,7 @@ fun StoryDetailReaderContent(
                 isInLibrary = isInLibrary,
                 onStartReading = { onEvent(StoryDetailReaderEvent.OnStartReading) },
                 onToggleFavorite = { onEvent(StoryDetailReaderEvent.OnToggleFavorite) },
-                onAddToLibrary = { onEvent(StoryDetailReaderEvent.OnAddToLibrary) }
+                onAddToLibrary = { onEvent(StoryDetailReaderEvent.ShowLibraryMenu) }
             )
         }
 
