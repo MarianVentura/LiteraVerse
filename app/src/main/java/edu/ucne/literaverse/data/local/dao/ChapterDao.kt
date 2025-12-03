@@ -25,4 +25,7 @@ interface ChapterDao {
 
     @Query("UPDATE Chapters SET needsSync = 0 WHERE chapterId = :chapterId")
     suspend fun markAsSynced(chapterId: Int)
+
+    @Query("SELECT * FROM Chapters WHERE storyId = :storyId ORDER BY chapterNumber ASC")
+    suspend fun getChaptersByStorySync(storyId: Int): List<ChapterEntity>
 }
