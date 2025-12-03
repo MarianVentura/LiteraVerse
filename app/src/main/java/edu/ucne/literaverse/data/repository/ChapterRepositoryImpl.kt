@@ -10,6 +10,7 @@ import edu.ucne.literaverse.data.remote.dto.UpdateChapterRequest
 import edu.ucne.literaverse.domain.model.Chapter
 import edu.ucne.literaverse.domain.repository.ChapterRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
@@ -141,6 +142,44 @@ class ChapterRepositoryImpl @Inject constructor(
         val chaptersToSync = chapterDao.getChaptersNeedingSync()
         chaptersToSync.forEach { chapter ->
             chapterDao.markAsSynced(chapter.chapterId)
+        }
+    }
+
+    override suspend fun getNextChapter(storyId: Int, currentChapterNumber: Int): Resource<Chapter?> {
+        return try {
+            val localChapters = chapterDao.getChaptersByStorySync(storyId)
+
+            val nextChapter = localChapters
+                .filter { it.isPublished && !it.isDraft }
+                .sortedBy { it.chapterNumber }
+                .firstOrNull { it.chapterNumber > currentChapterNumber }
+
+            if (nextChapter != null) {
+                Resource.Success(nextChapter.toDomain())
+            } else {
+                Resource.Success(null)
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Error al obtener siguiente capítulo")
+        }
+    }
+
+    override suspend fun getPreviousChapter(storyId: Int, currentChapterNumber: Int): Resource<Chapter?> {
+        return try {
+            val localChapters = chapterDao.getChaptersByStorySync(storyId)
+
+            val previousChapter = localChapters
+                .filter { it.isPublished && !it.isDraft }
+                .sortedBy { it.chapterNumber }
+                .lastOrNull { it.chapterNumber < currentChapterNumber }
+
+            if (previousChapter != null) {
+                Resource.Success(previousChapter.toDomain())
+            } else {
+                Resource.Success(null)
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Error al obtener capítulo anterior")
         }
     }
 }
