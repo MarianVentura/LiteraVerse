@@ -119,4 +119,5 @@ dependencies {
     kspTest("com.google.dagger:hilt-android-compiler:2.57.2")
     androidTestImplementation("com.google.dagger:hilt-android-testing:2.57.2")
     kspAndroidTest("com.google.dagger:hilt-android-compiler:2.57.2")
+
 }
