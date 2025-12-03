@@ -11,6 +11,8 @@ import edu.ucne.literaverse.data.remote.dto.ReadingProgressResponse
 import edu.ucne.literaverse.data.remote.dto.GenreResponse
 import edu.ucne.literaverse.data.remote.dto.StoryDetailResponse
 import edu.ucne.literaverse.data.remote.dto.StoryResponse
+import edu.ucne.literaverse.data.remote.dto.SessionResponse
+import edu.ucne.literaverse.data.remote.dto.UserProfileResponse
 import edu.ucne.literaverse.data.remote.dto.UpdateChapterRequest
 import edu.ucne.literaverse.data.remote.dto.UpdateStoryRequest
 import edu.ucne.literaverse.data.remote.dto.ValidateTokenResponse
@@ -447,6 +449,47 @@ class RemoteDataSource @Inject constructor(
             if (response.isSuccessful) {
                 response.body()?.let { Resource.Success(it) }
                     ?: Resource.Error("Respuesta vacía del servidor")
+            } else {
+                Resource.Error("HTTP ${response.code()} ${response.message()}")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.localizedMessage ?: "Error de red")
+        }
+    }
+
+    suspend fun getUserProfile(userId: Int): Resource<UserProfileResponse> {
+        return try {
+            val response = literaVerseApi.getUserProfile(userId)
+            if (response.isSuccessful) {
+                response.body()?.let { Resource.Success(it) }
+                    ?: Resource.Error("Respuesta vacía del servidor")
+            } else {
+                Resource.Error("HTTP ${response.code()} ${response.message()}")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.localizedMessage ?: "Error de red")
+        }
+    }
+
+    suspend fun getUserSessions(userId: Int): Resource<List<SessionResponse>> {
+        return try {
+            val response = literaVerseApi.getUserSessions(userId)
+            if (response.isSuccessful) {
+                response.body()?.let { Resource.Success(it) }
+                    ?: Resource.Error("Respuesta vacía del servidor")
+            } else {
+                Resource.Error("HTTP ${response.code()} ${response.message()}")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.localizedMessage ?: "Error de red")
+        }
+    }
+
+    suspend fun logoutAllSessions(userId: Int): Resource<Unit> {
+        return try {
+            val response = literaVerseApi.logoutAllSessions(userId)
+            if (response.isSuccessful) {
+                Resource.Success(Unit)
             } else {
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
