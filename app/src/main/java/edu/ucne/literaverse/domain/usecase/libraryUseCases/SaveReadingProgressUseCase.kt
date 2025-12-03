@@ -1,0 +1,18 @@
+package edu.ucne.literaverse.domain.usecase.libraryUseCases
+
+import edu.ucne.literaverse.data.remote.Resource
+import edu.ucne.literaverse.domain.repository.LibraryRepository
+import javax.inject.Inject
+
+class SaveReadingProgressUseCase @Inject constructor(
+    private val repository: LibraryRepository
+) {
+    suspend operator fun invoke(
+        userId: Int,
+        storyId: Int,
+        chapterId: Int,
+        scrollPosition: Double
+    ): Resource<Unit> {
+        return repository.saveReadingProgress(userId, storyId, chapterId, scrollPosition)
+    }
+}
