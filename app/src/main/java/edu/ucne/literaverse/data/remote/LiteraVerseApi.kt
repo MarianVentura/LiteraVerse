@@ -7,6 +7,8 @@ import edu.ucne.literaverse.data.remote.dto.CreateStoryRequest
 import edu.ucne.literaverse.data.remote.dto.LoginRequest
 import edu.ucne.literaverse.data.remote.dto.LoginResponse
 import edu.ucne.literaverse.data.remote.dto.RegisterRequest
+import edu.ucne.literaverse.data.remote.dto.ReadingProgressRequest
+import edu.ucne.literaverse.data.remote.dto.ReadingProgressResponse
 import edu.ucne.literaverse.data.remote.dto.GenreResponse
 import edu.ucne.literaverse.data.remote.dto.StoryDetailResponse
 import edu.ucne.literaverse.data.remote.dto.StoryResponse
@@ -123,7 +125,37 @@ interface LiteraVerseApi {
     @POST("api/Stories/{storyId}/Chapters/{chapterId}/publish")
     suspend fun publishChapter(@Path("storyId") storyId: Int, @Path("chapterId") chapterId: Int): Response<Unit>
 
-
     @POST("api/Stories/{storyId}/Chapters/{chapterId}/unpublish")
     suspend fun unpublishChapter(@Path("storyId") storyId: Int, @Path("chapterId") chapterId: Int): Response<Unit>
+
+    @GET("api/Library/{userId}/favorites")
+    suspend fun getFavorites(@Path("userId") userId: Int): Response<List<StoryResponse>>
+
+    @POST("api/Library/{userId}/favorites/{storyId}")
+    suspend fun addFavorite(
+        @Path("userId") userId: Int,
+        @Path("storyId") storyId: Int
+    ): Response<Unit>
+
+    @DELETE("api/Library/{userId}/favorites/{storyId}")
+    suspend fun removeFavorite(
+        @Path("userId") userId: Int,
+        @Path("storyId") storyId: Int
+    ): Response<Unit>
+
+    @GET("api/Library/{userId}/favorites/{storyId}/check")
+    suspend fun isFavorite(
+        @Path("userId") userId: Int,
+        @Path("storyId") storyId: Int
+    ): Response<Map<String, Boolean>>
+
+    @GET("api/Library/{userId}/progress")
+    suspend fun getReadingProgress(@Path("userId") userId: Int): Response<List<ReadingProgressResponse>>
+
+    @POST("api/Library/{userId}/progress")
+    suspend fun saveReadingProgress(@Body request: ReadingProgressRequest): Response<Unit>
+
+    @GET("api/Library/{userId}/completed")
+    suspend fun getCompletedStories(@Path("userId") userId: Int): Response<List<StoryResponse>>
 }
+
