@@ -12,6 +12,7 @@ import edu.ucne.literaverse.domain.usecase.libraryUseCases.GetReadingStoriesUseC
 import edu.ucne.literaverse.domain.usecase.libraryUseCases.MarkAsCompletedUseCase
 import edu.ucne.literaverse.domain.usecase.libraryUseCases.RemoveFavoriteUseCase
 import edu.ucne.literaverse.domain.usecase.libraryUseCases.UpdateReadingStatusUseCase
+import edu.ucne.literaverse.domain.usecase.libraryUseCases.SyncLibraryUseCase
 import edu.ucne.literaverse.presentation.components.LibraryStates
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -28,6 +29,7 @@ class LibraryViewModel @Inject constructor(
     private val getCompletedStoriesUseCase: GetCompletedStoriesUseCase,
     private val markAsCompletedUseCase: MarkAsCompletedUseCase,
     private val updateReadingStatusUseCase: UpdateReadingStatusUseCase,
+    private val syncLibraryUseCase: SyncLibraryUseCase,
     private val tokenManager: TokenManager
 ) : ViewModel() {
 
@@ -62,6 +64,10 @@ class LibraryViewModel @Inject constructor(
         if (userId == -1) {
             _uiState.update { it.copy(errorMessage = "Usuario no autenticado") }
             return
+        }
+
+        viewModelScope.launch {
+            syncLibraryUseCase(userId)
         }
 
         viewModelScope.launch {
