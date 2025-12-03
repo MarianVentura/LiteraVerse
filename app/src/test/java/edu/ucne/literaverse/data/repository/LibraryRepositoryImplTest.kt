@@ -209,7 +209,7 @@ class LibraryRepositoryImplTest {
 
     @Test
     fun `syncLibrary sincroniza favoritos desde remoto`() = runTest {
-        
+
         val userId = 1
         val mockStories = listOf(
             StoryResponse(
