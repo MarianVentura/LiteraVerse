@@ -9,7 +9,9 @@ import edu.ucne.literaverse.data.remote.Resource
 import edu.ucne.literaverse.domain.usecase.libraryUseCases.AddFavoriteUseCase
 import edu.ucne.literaverse.domain.usecase.libraryUseCases.MarkAsCompletedUseCase
 import edu.ucne.literaverse.domain.usecase.libraryUseCases.RemoveFavoriteUseCase
+import edu.ucne.literaverse.domain.usecase.libraryUseCases.IsFavoriteUseCase
 import edu.ucne.literaverse.domain.usecase.storyUseCases.GetStoryForReaderUseCase
+import edu.ucne.literaverse.domain.usecase.libraryUseCases.UpdateReadingStatusUseCase
 import edu.ucne.literaverse.presentation.components.LibraryStates
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -24,6 +26,8 @@ class StoryDetailReaderViewModel @Inject constructor(
     private val addFavoriteUseCase: AddFavoriteUseCase,
     private val removeFavoriteUseCase: RemoveFavoriteUseCase,
     private val markAsCompletedUseCase: MarkAsCompletedUseCase,
+    private val isFavoriteUseCase: IsFavoriteUseCase,
+    private val updateReadingStatusUseCase: UpdateReadingStatusUseCase,
     private val tokenManager: TokenManager,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -54,13 +58,23 @@ class StoryDetailReaderViewModel @Inject constructor(
     private fun loadStory(storyId: Int) = viewModelScope.launch {
         _state.update { it.copy(isLoading = true, error = null) }
 
+        val userId = tokenManager.getUserId()
+
         when (val result = getStoryForReaderUseCase(storyId)) {
             is Resource.Success -> {
+                val isFav = if (userId != -1) {
+                    when (val favResult = isFavoriteUseCase(userId, storyId)) {
+                        is Resource.Success -> favResult.data ?: false
+                        else -> false
+                    }
+                } else false
+
                 _state.update {
                     it.copy(
                         story = result.data,
                         isLoading = false,
-                        error = null
+                        error = null,
+                        isFavorite = isFav
                     )
                 }
             }
@@ -154,10 +168,10 @@ class StoryDetailReaderViewModel @Inject constructor(
             }
 
             if (states.isReading != _state.value.isReading) {
-                _state.update { it.copy(isReading = states.isReading) }
+                updateReadingStatusUseCase(userId, storyId, states.isReading)
             }
 
-            if (states.isCompleted) {
+            if (states.isCompleted != _state.value.isCompleted && states.isCompleted) {
                 markAsCompletedUseCase(userId, storyId)
             }
 
