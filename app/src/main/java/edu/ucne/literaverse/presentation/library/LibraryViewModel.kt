@@ -11,6 +11,8 @@ import edu.ucne.literaverse.domain.usecase.libraryUseCases.GetFavoritesUseCase
 import edu.ucne.literaverse.domain.usecase.libraryUseCases.GetReadingStoriesUseCase
 import edu.ucne.literaverse.domain.usecase.libraryUseCases.MarkAsCompletedUseCase
 import edu.ucne.literaverse.domain.usecase.libraryUseCases.RemoveFavoriteUseCase
+import edu.ucne.literaverse.domain.usecase.libraryUseCases.UpdateReadingStatusUseCase
+import edu.ucne.literaverse.presentation.components.LibraryStates
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -25,6 +27,7 @@ class LibraryViewModel @Inject constructor(
     private val getReadingStoriesUseCase: GetReadingStoriesUseCase,
     private val getCompletedStoriesUseCase: GetCompletedStoriesUseCase,
     private val markAsCompletedUseCase: MarkAsCompletedUseCase,
+    private val updateReadingStatusUseCase: UpdateReadingStatusUseCase,
     private val tokenManager: TokenManager
 ) : ViewModel() {
 
@@ -42,6 +45,12 @@ class LibraryViewModel @Inject constructor(
             is LibraryEvent.RemoveFromFavorites -> removeFromFavorites(event.storyId)
             is LibraryEvent.AddToFavorites -> addToFavorites(event.storyId)
             is LibraryEvent.MarkAsCompleted -> markAsCompleted(event.storyId)
+            is LibraryEvent.UpdateLibraryStates -> updateLibraryStates(event.storyId, event.states)
+            is LibraryEvent.ShowLibraryMenu -> showLibraryMenu(event.storyId, event.currentStates)
+            is LibraryEvent.DismissLibraryMenu -> dismissLibraryMenu()
+            is LibraryEvent.ShowContextMenu -> showContextMenu(event.storyId, event.currentStates)
+            is LibraryEvent.DismissContextMenu -> dismissContextMenu()
+            is LibraryEvent.RemoveFromLibrary -> removeFromLibrary(event.storyId)
             is LibraryEvent.OnStoryClick -> {}
             is LibraryEvent.Refresh -> refresh()
             is LibraryEvent.UserMessageShown -> clearMessages()
@@ -158,6 +167,93 @@ class LibraryViewModel @Inject constructor(
                     }
                 }
                 is Resource.Loading -> {}
+            }
+        }
+    }
+
+
+    private fun updateLibraryStates(storyId: Int, states: LibraryStates) {
+        val userId = tokenManager.getUserId()
+        if (userId == -1) return
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+
+            if (states.isFavorite) {
+                addFavoriteUseCase(userId, storyId)
+            } else {
+                removeFavoriteUseCase(userId, storyId)
+            }
+
+            updateReadingStatusUseCase(userId, storyId, states.isReading)
+
+            if (states.isCompleted) {
+                markAsCompletedUseCase(userId, storyId)
+            }
+
+            _uiState.update {
+                it.copy(
+                    isLoading = false,
+                    successMessage = "Biblioteca actualizada"
+                )
+            }
+        }
+    }
+
+    private fun showLibraryMenu(storyId: Int, currentStates: LibraryStates) {
+        _uiState.update {
+            it.copy(
+                showLibraryMenu = true,
+                selectedStoryId = storyId,
+                selectedStoryStates = currentStates
+            )
+        }
+    }
+
+    private fun dismissLibraryMenu() {
+        _uiState.update {
+            it.copy(
+                showLibraryMenu = false,
+                selectedStoryId = null,
+                selectedStoryStates = null
+            )
+        }
+    }
+
+    private fun showContextMenu(storyId: Int, currentStates: LibraryStates) {
+        _uiState.update {
+            it.copy(
+                showContextMenu = true,
+                selectedStoryId = storyId,
+                selectedStoryStates = currentStates
+            )
+        }
+    }
+
+    private fun dismissContextMenu() {
+        _uiState.update {
+            it.copy(
+                showContextMenu = false,
+                selectedStoryId = null,
+                selectedStoryStates = null
+            )
+        }
+    }
+
+    private fun removeFromLibrary(storyId: Int) {
+        val userId = tokenManager.getUserId()
+        if (userId == -1) return
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+
+            removeFavoriteUseCase(userId, storyId)
+
+            _uiState.update {
+                it.copy(
+                    isLoading = false,
+                    successMessage = "Historia eliminada de biblioteca"
+                )
             }
         }
     }
