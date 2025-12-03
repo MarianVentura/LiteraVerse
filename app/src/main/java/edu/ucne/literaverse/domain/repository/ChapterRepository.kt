@@ -32,4 +32,8 @@ interface ChapterRepository {
     suspend fun unpublishChapter(storyId: Int, chapterId: Int): Resource<Unit>
 
     suspend fun syncChapters()
+
+    suspend fun getNextChapter(storyId: Int, currentChapterNumber: Int): Resource<Chapter?>
+
+    suspend fun getPreviousChapter(storyId: Int, currentChapterNumber: Int): Resource<Chapter?>
 }
