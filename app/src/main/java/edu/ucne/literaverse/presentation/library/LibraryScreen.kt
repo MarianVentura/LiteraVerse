@@ -1,7 +1,7 @@
 package edu.ucne.literaverse.presentation.library
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,12 +17,17 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MenuBook
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -31,6 +36,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -48,7 +54,9 @@ import coil.compose.AsyncImage
 import edu.ucne.literaverse.domain.model.ReadingProgress
 import edu.ucne.literaverse.domain.model.StoryDetail
 import edu.ucne.literaverse.domain.model.StoryWithProgress
+import edu.ucne.literaverse.presentation.components.AddToLibraryMenu
 import edu.ucne.literaverse.presentation.components.BottomNavScreen
+import edu.ucne.literaverse.presentation.components.LibraryStates
 import edu.ucne.literaverse.presentation.components.UserMenuBottomBar
 import edu.ucne.literaverse.ui.theme.LiteraVerseTheme
 
@@ -174,12 +182,129 @@ fun LibraryScreen(
                                         storyWithProgress.story.storyId,
                                         storyWithProgress.lastReadChapterId
                                     )
+                                },
+                                onLongClick = {
+                                    viewModel.onEvent(
+                                        LibraryEvent.ShowContextMenu(
+                                            storyId = storyWithProgress.story.storyId,
+                                            currentStates = LibraryStates(
+                                                isFavorite = storyWithProgress.isFavorite,
+                                                isReading = storyWithProgress.isReading,
+                                                isCompleted = storyWithProgress.isCompleted
+                                            )
+                                        )
+                                    )
+                                },
+                                onMenuClick = {
+                                    viewModel.onEvent(
+                                        LibraryEvent.ShowLibraryMenu(
+                                            storyId = storyWithProgress.story.storyId,
+                                            currentStates = LibraryStates(
+                                                isFavorite = storyWithProgress.isFavorite,
+                                                isReading = storyWithProgress.isReading,
+                                                isCompleted = storyWithProgress.isCompleted
+                                            )
+                                        )
+                                    )
                                 }
                             )
                         }
                     }
                 }
             }
+        }
+    }
+
+    uiState.selectedStoryStates?.let { selectedStates ->
+        if (uiState.showLibraryMenu) {
+            AddToLibraryMenu(
+                currentStates = selectedStates,
+                onDismiss = { viewModel.onEvent(LibraryEvent.DismissLibraryMenu) },
+                onSave = { states ->
+                    uiState.selectedStoryId?.let { storyId ->
+                        viewModel.onEvent(LibraryEvent.UpdateLibraryStates(storyId, states))
+                    }
+                }
+            )
+        }
+    }
+
+    uiState.selectedStoryStates?.let { selectedStates ->
+        if (uiState.showContextMenu) {
+            AlertDialog(
+                onDismissRequest = { viewModel.onEvent(LibraryEvent.DismissContextMenu) },
+                title = {
+                    Text(
+                        text = "Opciones",
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                },
+                text = {
+                    Column {
+                        TextButton(
+                            onClick = {
+                                uiState.selectedStoryId?.let { storyId ->
+                                    viewModel.onEvent(
+                                        LibraryEvent.ShowLibraryMenu(
+                                            storyId = storyId,
+                                            currentStates = selectedStates
+                                        )
+                                    )
+                                }
+                                viewModel.onEvent(LibraryEvent.DismissContextMenu)
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.Start,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Edit,
+                                    contentDescription = null
+                                )
+                                Spacer(modifier = Modifier.width(16.dp))
+                                Text("Editar estados")
+                            }
+                        }
+
+                        TextButton(
+                            onClick = {
+                                uiState.selectedStoryId?.let { storyId ->
+                                    viewModel.onEvent(LibraryEvent.RemoveFromLibrary(storyId))
+                                }
+                                viewModel.onEvent(LibraryEvent.DismissContextMenu)
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.Start,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                                Spacer(modifier = Modifier.width(16.dp))
+                                Text(
+                                    "Eliminar de biblioteca",
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = { viewModel.onEvent(LibraryEvent.DismissContextMenu) }
+                    ) {
+                        Text("Cancelar")
+                    }
+                }
+            )
         }
     }
 }
@@ -234,12 +359,17 @@ fun EmptyLibraryState(
 @Composable
 fun StoryLibraryCard(
     storyWithProgress: StoryWithProgress,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onLongClick: () -> Unit,
+    onMenuClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick
+            ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
@@ -266,13 +396,31 @@ fun StoryLibraryCard(
             Column(
                 modifier = Modifier.weight(1f)
             ) {
-                Text(
-                    text = storyWithProgress.story.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Text(
+                        text = storyWithProgress.story.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    IconButton(
+                        onClick = onMenuClick,
+                        modifier = Modifier.size(24.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = "Opciones",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(4.dp))
 
@@ -388,7 +536,9 @@ fun StoryLibraryCardPreview() {
                 isCompleted = false,
                 totalChapters = 12
             ),
-            onClick = {}
+            onClick = {},
+            onLongClick = {},
+            onMenuClick = {}
         )
     }
 }
