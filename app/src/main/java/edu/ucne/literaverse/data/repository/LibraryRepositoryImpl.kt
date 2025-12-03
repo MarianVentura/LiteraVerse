@@ -136,6 +136,11 @@ class LibraryRepositoryImpl @Inject constructor(
         return Resource.Success(Unit)
     }
 
+    override suspend fun updateReadingStatus(userId: Int, storyId: Int, isReading: Boolean): Resource<Unit> {
+        storyDao.updateReadingStatus(storyId, isReading)
+        return Resource.Success(Unit)
+    }
+
     override suspend fun syncLibrary(userId: Int) {
         when (val favResult = remoteDataSource.getFavorites(userId)) {
             is Resource.Success -> {
