@@ -40,7 +40,23 @@ class LibraryRepositoryImpl @Inject constructor(
     }
 
     override suspend fun addFavorite(userId: Int, storyId: Int): Resource<Unit> {
-        storyDao.updateFavoriteStatus(storyId, true)
+        val existingStory = storyDao.getStoryById(storyId)
+
+        if (existingStory == null) {
+            when (val storyResult = remoteDataSource.getStoryById(storyId)) {
+                is Resource.Success -> {
+                    storyResult.data?.let { storyDetail ->
+                        val storyDomain = storyDetail.toDomain()
+                        val entity = storyDomain.toEntity().copy(isFavorite = true)
+                        storyDao.upsert(entity)
+                    }
+                }
+                else -> {}
+            }
+        } else {
+            storyDao.updateFavoriteStatus(storyId, true)
+        }
+
         return when (val result = remoteDataSource.addFavorite(userId, storyId)) {
             is Resource.Success -> Resource.Success(Unit)
             is Resource.Error -> {
@@ -131,13 +147,48 @@ class LibraryRepositoryImpl @Inject constructor(
     }
 
     override suspend fun markAsCompleted(userId: Int, storyId: Int): Resource<Unit> {
-        storyDao.updateCompletedStatus(storyId, true)
-        storyDao.updateReadingStatus(storyId, false)
+        val existingStory = storyDao.getStoryById(storyId)
+
+        if (existingStory == null) {
+            when (val storyResult = remoteDataSource.getStoryById(storyId)) {
+                is Resource.Success -> {
+                    storyResult.data?.let { storyDetail ->
+                        val storyDomain = storyDetail.toDomain()
+                        val entity = storyDomain.toEntity().copy(
+                            isCompleted = true,
+                            isReading = false
+                        )
+                        storyDao.upsert(entity)
+                    }
+                }
+                else -> {}
+            }
+        } else {
+            storyDao.updateCompletedStatus(storyId, true)
+            storyDao.updateReadingStatus(storyId, false)
+        }
+
         return Resource.Success(Unit)
     }
 
     override suspend fun updateReadingStatus(userId: Int, storyId: Int, isReading: Boolean): Resource<Unit> {
-        storyDao.updateReadingStatus(storyId, isReading)
+        val existingStory = storyDao.getStoryById(storyId)
+
+        if (existingStory == null && isReading) {
+            when (val storyResult = remoteDataSource.getStoryById(storyId)) {
+                is Resource.Success -> {
+                    storyResult.data?.let { storyDetail ->
+                        val storyDomain = storyDetail.toDomain()
+                        val entity = storyDomain.toEntity().copy(isReading = true)
+                        storyDao.upsert(entity)
+                    }
+                }
+                else -> {}
+            }
+        } else {
+            storyDao.updateReadingStatus(storyId, isReading)
+        }
+
         return Resource.Success(Unit)
     }
 
