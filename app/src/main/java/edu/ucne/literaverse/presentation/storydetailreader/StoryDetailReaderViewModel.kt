@@ -41,7 +41,7 @@ class StoryDetailReaderViewModel @Inject constructor(
         when (event) {
             is StoryDetailReaderEvent.LoadStory -> loadStory(event.storyId)
             is StoryDetailReaderEvent.OnChapterClick -> {}
-            is StoryDetailReaderEvent.OnStartReading -> startReading()
+            is StoryDetailReaderEvent.OnStartReading -> startReading(event.onNavigate)
             is StoryDetailReaderEvent.OnToggleFavorite -> toggleFavorite()
             is StoryDetailReaderEvent.OnAddToLibrary -> addToLibrary()
             is StoryDetailReaderEvent.ShowLibraryMenu -> showLibraryMenu()
@@ -76,11 +76,13 @@ class StoryDetailReaderViewModel @Inject constructor(
         }
     }
 
-    private fun startReading() {
+    private fun startReading(onNavigate: (Int, Int) -> Unit) {
         val firstChapter = _state.value.story?.publishedChapters?.firstOrNull()
         if (firstChapter != null) {
+            onNavigate(storyId, firstChapter.chapterId)
+        } else {
             _state.update {
-                it.copy(userMessage = "Iniciando lectura del capítulo ${firstChapter.chapterNumber}")
+                it.copy(userMessage = "No hay capítulos disponibles")
             }
         }
     }
