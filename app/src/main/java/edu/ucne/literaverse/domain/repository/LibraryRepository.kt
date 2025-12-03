@@ -20,6 +20,8 @@ interface LibraryRepository {
 
     fun getCompletedStories(userId: Int): Flow<List<StoryWithProgress>>
     suspend fun markAsCompleted(userId: Int, storyId: Int): Resource<Unit>
+    suspend fun updateReadingStatus(userId: Int, storyId: Int, isReading: Boolean): Resource<Unit>
+
 
     suspend fun syncLibrary(userId: Int)
 }
