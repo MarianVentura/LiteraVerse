@@ -16,7 +16,7 @@ import edu.ucne.literaverse.data.local.entities.StoryEntity
         UsuarioEntity::class,
         StoryEntity::class,
         ChapterEntity::class],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

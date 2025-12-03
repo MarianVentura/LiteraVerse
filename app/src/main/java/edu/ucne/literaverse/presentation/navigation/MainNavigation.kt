@@ -126,6 +126,14 @@ fun MainNavigation(navController: NavHostController) {
 
         composable<Screen.Library> {
             LibraryScreen(
+                onStoryClick = { storyId, lastReadChapterId ->
+                    navController.navigate(
+                        Screen.ChapterReader(
+                            storyId = storyId,
+                            chapterId = lastReadChapterId ?: 1
+                        )
+                    )
+                },
                 onNavigateToHome = {
                     navController.navigate(Screen.Home) {
                         popUpTo(Screen.Home) { inclusive = true }

@@ -45,6 +45,7 @@ class StoryRepositoryImpl @Inject constructor(
                     val storyDetail = StoryDetail(
                         storyId = response.storyId,
                         userId = response.userId,
+                        userName = response.userName,
                         title = response.title,
                         synopsis = response.synopsis,
                         coverImageUrl = response.coverImageUrl,
@@ -121,6 +122,7 @@ class StoryRepositoryImpl @Inject constructor(
                     val storyDetail = StoryDetail(
                         storyId = response.storyId,
                         userId = response.userId,
+                        userName = response.userName,
                         title = response.title,
                         synopsis = response.synopsis,
                         coverImageUrl = response.coverImageUrl,

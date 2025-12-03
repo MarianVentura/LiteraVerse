@@ -6,6 +6,8 @@ import edu.ucne.literaverse.data.remote.dto.CreateStoryRequest
 import edu.ucne.literaverse.data.remote.dto.LoginRequest
 import edu.ucne.literaverse.data.remote.dto.LoginResponse
 import edu.ucne.literaverse.data.remote.dto.RegisterRequest
+import edu.ucne.literaverse.data.remote.dto.ReadingProgressRequest
+import edu.ucne.literaverse.data.remote.dto.ReadingProgressResponse
 import edu.ucne.literaverse.data.remote.dto.GenreResponse
 import edu.ucne.literaverse.data.remote.dto.StoryDetailResponse
 import edu.ucne.literaverse.data.remote.dto.StoryResponse
@@ -357,4 +359,101 @@ class RemoteDataSource @Inject constructor(
             Resource.Error(e.localizedMessage ?: "Error de red")
         }
     }
+
+    suspend fun getFavorites(userId: Int): Resource<List<StoryResponse>> {
+        return try {
+            val response = literaVerseApi.getFavorites(userId)
+            if (response.isSuccessful) {
+                response.body()?.let { Resource.Success(it) }
+                    ?: Resource.Error("Respuesta vacía del servidor")
+            } else {
+                Resource.Error("HTTP ${response.code()} ${response.message()}")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.localizedMessage ?: "Error de red")
+        }
+    }
+
+    suspend fun addFavorite(userId: Int, storyId: Int): Resource<Unit> {
+        return try {
+            val response = literaVerseApi.addFavorite(userId, storyId)
+            if (response.isSuccessful) {
+                Resource.Success(Unit)
+            } else {
+                Resource.Error("HTTP ${response.code()} ${response.message()}")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.localizedMessage ?: "Error de red")
+        }
+    }
+
+    suspend fun removeFavorite(userId: Int, storyId: Int): Resource<Unit> {
+        return try {
+            val response = literaVerseApi.removeFavorite(userId, storyId)
+            if (response.isSuccessful) {
+                Resource.Success(Unit)
+            } else {
+                Resource.Error("HTTP ${response.code()} ${response.message()}")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.localizedMessage ?: "Error de red")
+        }
+    }
+
+    suspend fun isFavorite(userId: Int, storyId: Int): Resource<Boolean> {
+        return try {
+            val response = literaVerseApi.isFavorite(userId, storyId)
+            if (response.isSuccessful) {
+                val isFav = response.body()?.get("isFavorite") as? Boolean ?: false
+                Resource.Success(isFav)
+            } else {
+                Resource.Error("HTTP ${response.code()} ${response.message()}")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.localizedMessage ?: "Error de red")
+        }
+    }
+
+    suspend fun getReadingProgress(userId: Int): Resource<List<ReadingProgressResponse>> {
+        return try {
+            val response = literaVerseApi.getReadingProgress(userId)
+            if (response.isSuccessful) {
+                response.body()?.let { Resource.Success(it) }
+                    ?: Resource.Error("Respuesta vacía del servidor")
+            } else {
+                Resource.Error("HTTP ${response.code()} ${response.message()}")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.localizedMessage ?: "Error de red")
+        }
+    }
+
+    suspend fun saveReadingProgress(request: ReadingProgressRequest): Resource<Unit> {
+        return try {
+            val response = literaVerseApi.saveReadingProgress(request)
+            if (response.isSuccessful) {
+                Resource.Success(Unit)
+            } else {
+                Resource.Error("HTTP ${response.code()} ${response.message()}")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.localizedMessage ?: "Error de red")
+        }
+    }
+
+    suspend fun getCompletedStories(userId: Int): Resource<List<StoryResponse>> {
+        return try {
+            val response = literaVerseApi.getCompletedStories(userId)
+            if (response.isSuccessful) {
+                response.body()?.let { Resource.Success(it) }
+                    ?: Resource.Error("Respuesta vacía del servidor")
+            } else {
+                Resource.Error("HTTP ${response.code()} ${response.message()}")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.localizedMessage ?: "Error de red")
+        }
+    }
 }
+
+
