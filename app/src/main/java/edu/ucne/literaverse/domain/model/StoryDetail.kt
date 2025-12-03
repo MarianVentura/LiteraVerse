@@ -3,6 +3,7 @@ package edu.ucne.literaverse.domain.model
 data class StoryDetail(
     val storyId: Int,
     val userId: Int,
+    val userName: String?,
     val title: String,
     val synopsis: String,
     val coverImageUrl: String?,
