@@ -93,3 +93,20 @@ fun StoryDetail.toUpdateRequest(): UpdateStoryRequest = UpdateStoryRequest(
     genre = genre ?: "",
     tags = tags
 )
+
+fun StoryDetailResponse.toStoryResponse(): StoryResponse = StoryResponse(
+    storyId = storyId,
+    userId = userId,
+    userName = userName,
+    title = title,
+    synopsis = synopsis,
+    coverImageUrl = coverImageUrl,
+    isDraft = isDraft,
+    isPublished = isPublished,
+    createdAt = createdAt,
+    publishedAt = publishedAt,
+    updatedAt = updatedAt,
+    viewCount = viewCount,
+    genre = genre,
+    tags = tags
+)
