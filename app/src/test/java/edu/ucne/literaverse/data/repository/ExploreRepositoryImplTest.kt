@@ -25,7 +25,7 @@ class ExploreRepositoryImplTest {
 
     @Test
     fun `getFeaturedStories retorna Success cuando RemoteDataSource responde correctamente`() = runTest {
-        // Given
+
         val mockStories = listOf(
             StoryResponse(
                 storyId = 1,
@@ -47,10 +47,10 @@ class ExploreRepositoryImplTest {
 
         coEvery { remoteDataSource.getFeaturedStories() } returns Resource.Success(mockStories)
 
-        // When
+
         val result = repository.getFeaturedStories()
 
-        // Then
+
         assertTrue(result is Resource.Success)
         assertEquals(1, (result as Resource.Success).data?.size)
         coVerify { remoteDataSource.getFeaturedStories() }
@@ -58,22 +58,22 @@ class ExploreRepositoryImplTest {
 
     @Test
     fun `getFeaturedStories retorna Error cuando falla`() = runTest {
-        // Given
+
         coEvery {
             remoteDataSource.getFeaturedStories()
         } returns Resource.Error("Network error")
 
-        // When
+
         val result = repository.getFeaturedStories()
 
-        // Then
+
         assertTrue(result is Resource.Error)
         assertNotNull((result as Resource.Error).message)
     }
 
     @Test
     fun `getPopularStories retorna Success con lista`() = runTest {
-        // Given
+
         val mockStories = listOf(
             StoryResponse(
                 storyId = 2,
@@ -95,17 +95,17 @@ class ExploreRepositoryImplTest {
 
         coEvery { remoteDataSource.getPopularStories() } returns Resource.Success(mockStories)
 
-        // When
+
         val result = repository.getPopularStories()
 
-        // Then
+
         assertTrue(result is Resource.Success)
         assertEquals(1, (result as Resource.Success).data?.size)
     }
 
     @Test
     fun `getNewStories retorna Success con lista`() = runTest {
-        // Given
+
         val mockStories = listOf(
             StoryResponse(
                 storyId = 3,
@@ -127,17 +127,17 @@ class ExploreRepositoryImplTest {
 
         coEvery { remoteDataSource.getNewStories() } returns Resource.Success(mockStories)
 
-        // When
+
         val result = repository.getNewStories()
 
-        // Then
+
         assertTrue(result is Resource.Success)
         assertEquals(1, (result as Resource.Success).data?.size)
     }
 
     @Test
     fun `getGenres retorna Success con lista de géneros`() = runTest {
-        // Given
+
         val mockGenres = listOf(
             GenreResponse(genreId = 1, name = "Fantasy"),
             GenreResponse(genreId = 2, name = "Romance")
@@ -145,10 +145,10 @@ class ExploreRepositoryImplTest {
 
         coEvery { remoteDataSource.getGenres() } returns Resource.Success(mockGenres)
 
-        // When
+
         val result = repository.getGenres()
 
-        // Then
+
         assertTrue(result is Resource.Success)
         assertEquals(2, (result as Resource.Success).data?.size)
     }
@@ -180,10 +180,10 @@ class ExploreRepositoryImplTest {
             remoteDataSource.getStoriesByGenre(genreName)
         } returns Resource.Success(mockStories)
 
-        // When
+
         val result = repository.getStoriesByGenre(genreName)
 
-        // Then
+
         assertTrue(result is Resource.Success)
         assertEquals(1, (result as Resource.Success).data?.size)
         coVerify { remoteDataSource.getStoriesByGenre(genreName) }
@@ -191,17 +191,17 @@ class ExploreRepositoryImplTest {
 
     @Test
     fun `getStoriesByGenre retorna Error cuando falla`() = runTest {
-        // Given
+
         val genreName = "Fantasy"
 
         coEvery {
             remoteDataSource.getStoriesByGenre(genreName)
         } returns Resource.Error("Error al obtener historias")
 
-        // When
+
         val result = repository.getStoriesByGenre(genreName)
 
-        // Then
+
         assertTrue(result is Resource.Error)
     }
 }
