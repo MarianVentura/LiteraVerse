@@ -35,134 +35,221 @@ fun ChapterEditorScreen(
             )
         }
     ) { padding ->
-        Box(
+        ChapterEditorContent(
+            state = state,
+            onEvent = viewModel::onEvent,
+            modifier = Modifier.padding(padding)
+        )
+    }
+}
+
+@Composable
+private fun ChapterEditorContent(
+    state: ChapterEditorUiState,
+    onEvent: (ChapterEditorEvent) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier.fillMaxSize()
+    ) {
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ChapterEditorTitle(isEditMode = state.isEditMode)
+
+            ChapterNumberCard(
+                isEditMode = state.isEditMode,
+                chapterNumber = state.chapterNumber
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            TitleTextField(
+                title = state.title,
+                error = state.titleError,
+                onTitleChanged = { onEvent(ChapterEditorEvent.OnTitleChanged(it)) }
+            )
+
+            ContentTextField(
+                content = state.content,
+                error = state.contentError,
+                onContentChanged = { onEvent(ChapterEditorEvent.OnContentChanged(it)) }
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            ActionButtons(
+                isEditMode = state.isEditMode,
+                isLoading = state.isLoading,
+                onSaveAsDraft = { onEvent(ChapterEditorEvent.OnSaveAsDraft) },
+                onPublish = { onEvent(ChapterEditorEvent.OnPublish) }
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+        }
+
+        ErrorSnackbar(error = state.error)
+    }
+}
+
+@Composable
+private fun ChapterEditorTitle(isEditMode: Boolean) {
+    val titleText = if (isEditMode) "Editar Capítulo" else "Nuevo Capítulo"
+    Text(
+        text = titleText,
+        style = MaterialTheme.typography.headlineMedium,
+        fontWeight = FontWeight.Bold
+    )
+}
+
+@Composable
+private fun ChapterNumberCard(
+    isEditMode: Boolean,
+    chapterNumber: Int
+) {
+    if (!isEditMode) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer
+            )
+        ) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = if (state.isEditMode) "Editar Capítulo" else "Nuevo Capítulo",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold
+                    text = "Capítulo",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
-
-                if (!state.isEditMode) {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer
-                        )
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(16.dp),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Text(
-                                text = "Capítulo",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                            Text(
-                                text = "${state.chapterNumber}",
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                val titleError = state.titleError
-                OutlinedTextField(
-                    value = state.title,
-                    onValueChange = { viewModel.onEvent(ChapterEditorEvent.OnTitleChanged(it)) },
-                    label = { Text("Título del Capítulo") },
-                    placeholder = { Text("Ingresa el título") },
-                    modifier = Modifier.fillMaxWidth(),
-                    isError = titleError != null,
-                    supportingText = {
-                        if (titleError != null) {
-                            Text(
-                                text = titleError,
-                                color = MaterialTheme.colorScheme.error
-                            )
-                        }
-                    },
-                    singleLine = true
+                Text(
+                    text = "$chapterNumber",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
-
-                val contentError = state.contentError
-                OutlinedTextField(
-                    value = state.content,
-                    onValueChange = { viewModel.onEvent(ChapterEditorEvent.OnContentChanged(it)) },
-                    label = { Text("Contenido") },
-                    placeholder = { Text("Escribe tu capítulo aquí...") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = 400.dp),
-                    isError = contentError != null,
-                    supportingText = {
-                        if (contentError != null) {
-                            Text(
-                                text = contentError,
-                                color = MaterialTheme.colorScheme.error
-                            )
-                        } else {
-                            Text("${state.content.length} caracteres")
-                        }
-                    },
-                    maxLines = Int.MAX_VALUE
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    OutlinedButton(
-                        onClick = { viewModel.onEvent(ChapterEditorEvent.OnSaveAsDraft) },
-                        modifier = Modifier.weight(1f),
-                        enabled = !state.isLoading
-                    ) {
-                        Text("Guardar Borrador")
-                    }
-
-                    Button(
-                        onClick = { viewModel.onEvent(ChapterEditorEvent.OnPublish) },
-                        modifier = Modifier.weight(1f),
-                        enabled = !state.isLoading
-                    ) {
-                        if (state.isLoading) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(20.dp),
-                                color = MaterialTheme.colorScheme.onPrimary
-                            )
-                        } else {
-                            Text(if (state.isEditMode) "Actualizar" else "Publicar")
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(32.dp))
             }
+        }
+    }
+}
 
-            state.error?.let { error ->
-                Snackbar(
-                    modifier = Modifier.padding(16.dp)
-                ) {
-                    Text(error)
-                }
+@Composable
+private fun TitleTextField(
+    title: String,
+    error: String?,
+    onTitleChanged: (String) -> Unit
+) {
+    OutlinedTextField(
+        value = title,
+        onValueChange = onTitleChanged,
+        label = { Text("Título del Capítulo") },
+        placeholder = { Text("Ingresa el título") },
+        modifier = Modifier.fillMaxWidth(),
+        isError = error != null,
+        supportingText = {
+            error?.let {
+                Text(
+                    text = it,
+                    color = MaterialTheme.colorScheme.error
+                )
             }
+        },
+        singleLine = true
+    )
+}
+
+@Composable
+private fun ContentTextField(
+    content: String,
+    error: String?,
+    onContentChanged: (String) -> Unit
+) {
+    OutlinedTextField(
+        value = content,
+        onValueChange = onContentChanged,
+        label = { Text("Contenido") },
+        placeholder = { Text("Escribe tu capítulo aquí...") },
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 400.dp),
+        isError = error != null,
+        supportingText = {
+            if (error != null) {
+                Text(
+                    text = error,
+                    color = MaterialTheme.colorScheme.error
+                )
+            } else {
+                Text("${content.length} caracteres")
+            }
+        },
+        maxLines = Int.MAX_VALUE
+    )
+}
+
+@Composable
+private fun ActionButtons(
+    isEditMode: Boolean,
+    isLoading: Boolean,
+    onSaveAsDraft: () -> Unit,
+    onPublish: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        OutlinedButton(
+            onClick = onSaveAsDraft,
+            modifier = Modifier.weight(1f),
+            enabled = !isLoading
+        ) {
+            Text("Guardar Borrador")
+        }
+
+        PublishButton(
+            isEditMode = isEditMode,
+            isLoading = isLoading,
+            onClick = onPublish
+        )
+    }
+}
+
+@Composable
+private fun RowScope.PublishButton(
+    isEditMode: Boolean,
+    isLoading: Boolean,
+    onClick: () -> Unit
+) {
+    val buttonText = if (isEditMode) "Actualizar" else "Publicar"
+
+    Button(
+        onClick = onClick,
+        modifier = Modifier.weight(1f),
+        enabled = !isLoading
+    ) {
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(20.dp),
+                color = MaterialTheme.colorScheme.onPrimary
+            )
+        } else {
+            Text(buttonText)
+        }
+    }
+}
+
+@Composable
+private fun ErrorSnackbar(error: String?) {
+    error?.let {
+        Snackbar(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text(it)
         }
     }
 }
@@ -173,10 +260,12 @@ fun ChapterEditorTopBar(
     isEditMode: Boolean,
     onNavigateBack: () -> Unit
 ) {
+    val titleText = if (isEditMode) "Editar Capítulo" else "Nuevo Capítulo"
+
     TopAppBar(
         title = {
             Text(
-                text = if (isEditMode) "Editar Capítulo" else "Nuevo Capítulo",
+                text = titleText,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
