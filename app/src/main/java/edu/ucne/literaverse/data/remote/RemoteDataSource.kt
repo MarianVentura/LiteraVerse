@@ -21,12 +21,16 @@ import javax.inject.Inject
 class RemoteDataSource @Inject constructor(
     private val literaVerseApi: LiteraVerseApi
 ) {
+    private companion object {
+        const val EMPTY_RESPONSE_ERROR = "Respuesta vacía del servidor"
+    }
+
     suspend fun login(request: LoginRequest): Resource<LoginResponse> {
         return try {
             val response = literaVerseApi.login(request)
             if (response.isSuccessful) {
                 response.body()?.let { Resource.Success(it) }
-                    ?: Resource.Error("Respuesta vacía del servidor")
+                    ?: Resource.Error(EMPTY_RESPONSE_ERROR)
             } else {
                 when (response.code()) {
                     401 -> Resource.Error("Usuario o contraseña incorrectos")
@@ -43,7 +47,7 @@ class RemoteDataSource @Inject constructor(
             val response = literaVerseApi.register(request)
             if (response.isSuccessful) {
                 response.body()?.let { Resource.Success(it) }
-                    ?: Resource.Error("Respuesta vacía del servidor")
+                    ?: Resource.Error(EMPTY_RESPONSE_ERROR)
             } else {
                 when (response.code()) {
                     400 -> Resource.Error("El usuario ya existe")
@@ -73,7 +77,7 @@ class RemoteDataSource @Inject constructor(
             val response = literaVerseApi.validateToken(token)
             if (response.isSuccessful) {
                 response.body()?.let { Resource.Success(it) }
-                    ?: Resource.Error("Respuesta vacía del servidor")
+                    ?: Resource.Error(EMPTY_RESPONSE_ERROR)
             } else {
                 Resource.Error("Token inválido")
             }
@@ -81,12 +85,13 @@ class RemoteDataSource @Inject constructor(
             Resource.Error(e.localizedMessage ?: "Error de red")
         }
     }
+
     suspend fun getFeaturedStories(): Resource<List<StoryResponse>> {
         return try {
             val response = literaVerseApi.getFeaturedStories()
             if (response.isSuccessful) {
                 response.body()?.let { Resource.Success(it) }
-                    ?: Resource.Error("Respuesta vacía del servidor")
+                    ?: Resource.Error(EMPTY_RESPONSE_ERROR)
             } else {
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
@@ -100,7 +105,7 @@ class RemoteDataSource @Inject constructor(
             val response = literaVerseApi.getPopularStories()
             if (response.isSuccessful) {
                 response.body()?.let { Resource.Success(it) }
-                    ?: Resource.Error("Respuesta vacía del servidor")
+                    ?: Resource.Error(EMPTY_RESPONSE_ERROR)
             } else {
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
@@ -114,7 +119,7 @@ class RemoteDataSource @Inject constructor(
             val response = literaVerseApi.getNewStories()
             if (response.isSuccessful) {
                 response.body()?.let { Resource.Success(it) }
-                    ?: Resource.Error("Respuesta vacía del servidor")
+                    ?: Resource.Error(EMPTY_RESPONSE_ERROR)
             } else {
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
@@ -128,7 +133,7 @@ class RemoteDataSource @Inject constructor(
             val response = literaVerseApi.getGenres()
             if (response.isSuccessful) {
                 response.body()?.let { Resource.Success(it) }
-                    ?: Resource.Error("Respuesta vacía del servidor")
+                    ?: Resource.Error(EMPTY_RESPONSE_ERROR)
             } else {
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
@@ -142,7 +147,7 @@ class RemoteDataSource @Inject constructor(
             val response = literaVerseApi.getStoriesByGenre(genreName)
             if (response.isSuccessful) {
                 response.body()?.let { Resource.Success(it) }
-                    ?: Resource.Error("Respuesta vacía del servidor")
+                    ?: Resource.Error(EMPTY_RESPONSE_ERROR)
             } else {
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
@@ -151,13 +156,12 @@ class RemoteDataSource @Inject constructor(
         }
     }
 
-
     suspend fun createStory(request: CreateStoryRequest): Resource<StoryResponse> {
         return try {
             val response = literaVerseApi.createStory(request)
             if (response.isSuccessful) {
                 response.body()?.let { Resource.Success(it) }
-                    ?: Resource.Error("Respuesta vacía del servidor")
+                    ?: Resource.Error(EMPTY_RESPONSE_ERROR)
             } else {
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
@@ -171,7 +175,7 @@ class RemoteDataSource @Inject constructor(
             val response = literaVerseApi.getStoriesByUser(userId)
             if (response.isSuccessful) {
                 response.body()?.let { Resource.Success(it) }
-                    ?: Resource.Error("Respuesta vacía del servidor")
+                    ?: Resource.Error(EMPTY_RESPONSE_ERROR)
             } else {
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
@@ -185,7 +189,7 @@ class RemoteDataSource @Inject constructor(
             val response = literaVerseApi.getStoryById(storyId)
             if (response.isSuccessful) {
                 response.body()?.let { Resource.Success(it) }
-                    ?: Resource.Error("Respuesta vacía del servidor")
+                    ?: Resource.Error(EMPTY_RESPONSE_ERROR)
             } else {
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
@@ -220,7 +224,7 @@ class RemoteDataSource @Inject constructor(
             val response = literaVerseApi.updateStory(storyId, request)
             if (response.isSuccessful) {
                 response.body()?.let { Resource.Success(it) }
-                    ?: Resource.Error("Respuesta vacía del servidor")
+                    ?: Resource.Error(EMPTY_RESPONSE_ERROR)
             } else {
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
@@ -273,7 +277,7 @@ class RemoteDataSource @Inject constructor(
             val response = literaVerseApi.getChaptersByStory(storyId)
             if (response.isSuccessful) {
                 response.body()?.let { Resource.Success(it) }
-                    ?: Resource.Error("Respuesta vacía del servidor")
+                    ?: Resource.Error(EMPTY_RESPONSE_ERROR)
             } else {
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
@@ -287,7 +291,7 @@ class RemoteDataSource @Inject constructor(
             val response = literaVerseApi.createChapter(storyId, request)
             if (response.isSuccessful) {
                 response.body()?.let { Resource.Success(it) }
-                    ?: Resource.Error("Respuesta vacía del servidor")
+                    ?: Resource.Error(EMPTY_RESPONSE_ERROR)
             } else {
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
@@ -301,7 +305,7 @@ class RemoteDataSource @Inject constructor(
             val response = literaVerseApi.getChapterById(storyId, chapterId)
             if (response.isSuccessful) {
                 response.body()?.let { Resource.Success(it) }
-                    ?: Resource.Error("Respuesta vacía del servidor")
+                    ?: Resource.Error(EMPTY_RESPONSE_ERROR)
             } else {
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
@@ -315,7 +319,7 @@ class RemoteDataSource @Inject constructor(
             val response = literaVerseApi.updateChapter(storyId, chapterId, request)
             if (response.isSuccessful) {
                 response.body()?.let { Resource.Success(it) }
-                    ?: Resource.Error("Respuesta vacía del servidor")
+                    ?: Resource.Error(EMPTY_RESPONSE_ERROR)
             } else {
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
@@ -368,7 +372,7 @@ class RemoteDataSource @Inject constructor(
             val response = literaVerseApi.getFavorites(userId)
             if (response.isSuccessful) {
                 response.body()?.let { Resource.Success(it) }
-                    ?: Resource.Error("Respuesta vacía del servidor")
+                    ?: Resource.Error(EMPTY_RESPONSE_ERROR)
             } else {
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
@@ -422,7 +426,7 @@ class RemoteDataSource @Inject constructor(
             val response = literaVerseApi.getReadingProgress(userId)
             if (response.isSuccessful) {
                 response.body()?.let { Resource.Success(it) }
-                    ?: Resource.Error("Respuesta vacía del servidor")
+                    ?: Resource.Error(EMPTY_RESPONSE_ERROR)
             } else {
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
@@ -449,7 +453,7 @@ class RemoteDataSource @Inject constructor(
             val response = literaVerseApi.getCompletedStories(userId)
             if (response.isSuccessful) {
                 response.body()?.let { Resource.Success(it) }
-                    ?: Resource.Error("Respuesta vacía del servidor")
+                    ?: Resource.Error(EMPTY_RESPONSE_ERROR)
             } else {
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
@@ -463,7 +467,7 @@ class RemoteDataSource @Inject constructor(
             val response = literaVerseApi.getUserProfile(userId)
             if (response.isSuccessful) {
                 response.body()?.let { Resource.Success(it) }
-                    ?: Resource.Error("Respuesta vacía del servidor")
+                    ?: Resource.Error(EMPTY_RESPONSE_ERROR)
             } else {
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
@@ -477,7 +481,7 @@ class RemoteDataSource @Inject constructor(
             val response = literaVerseApi.getUserSessions(userId)
             if (response.isSuccessful) {
                 response.body()?.let { Resource.Success(it) }
-                    ?: Resource.Error("Respuesta vacía del servidor")
+                    ?: Resource.Error(EMPTY_RESPONSE_ERROR)
             } else {
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
