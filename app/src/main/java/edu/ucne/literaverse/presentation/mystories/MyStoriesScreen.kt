@@ -36,52 +36,86 @@ fun MyStoriesScreen(
             MyStoriesTopBar(onNavigateBack = onNavigateBack)
         }
     ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
-            MyStoriesFilterChips(
-                selectedFilter = state.selectedFilter,
-                onFilterChanged = { viewModel.onEvent(MyStoriesEvent.OnFilterChanged(it)) },
-                allCount = state.stories.size,
-                draftsCount = state.stories.count { it.isDraft && !it.isPublished },
-                publishedCount = state.stories.count { it.isPublished }
-            )
+        MyStoriesContent(
+            state = state,
+            onEvent = viewModel::onEvent,
+            onNavigateToStoryDetail = onNavigateToStoryDetail,
+            modifier = Modifier.padding(padding)
+        )
+    }
+}
 
-            if (state.isLoading) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
-            } else if (state.filteredStories.isEmpty()) {
-                EmptyStoriesState(filter = state.selectedFilter)
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(state.filteredStories) { story ->
-                        StoryListItem(
-                            story = story,
-                            onStoryClick = { onNavigateToStoryDetail(story.storyId) },
-                            onDeleteClick = { viewModel.onEvent(MyStoriesEvent.OnDeleteStory(story.storyId)) }
-                        )
-                    }
-                }
-            }
+@Composable
+private fun MyStoriesContent(
+    state: MyStoriesUiState,
+    onEvent: (MyStoriesEvent) -> Unit,
+    onNavigateToStoryDetail: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.fillMaxSize()
+    ) {
+        MyStoriesFilterChips(
+            selectedFilter = state.selectedFilter,
+            onFilterChanged = { onEvent(MyStoriesEvent.OnFilterChanged(it)) },
+            allCount = state.stories.size,
+            draftsCount = state.stories.count { it.isDraft && !it.isPublished },
+            publishedCount = state.stories.count { it.isPublished }
+        )
+
+        when {
+            state.isLoading -> LoadingState()
+            state.filteredStories.isEmpty() -> EmptyStoriesState(filter = state.selectedFilter)
+            else -> StoriesList(
+                stories = state.filteredStories,
+                onNavigateToStoryDetail = onNavigateToStoryDetail,
+                onDeleteStory = { onEvent(MyStoriesEvent.OnDeleteStory(it)) }
+            )
         }
 
         state.error?.let { error ->
-            Snackbar(
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Text(error)
-            }
+            ErrorSnackbar(error = error)
         }
+    }
+}
+
+@Composable
+private fun LoadingState() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator()
+    }
+}
+
+@Composable
+private fun StoriesList(
+    stories: List<StoryDetail>,
+    onNavigateToStoryDetail: (Int) -> Unit,
+    onDeleteStory: (Int) -> Unit
+) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        items(stories) { story ->
+            StoryListItem(
+                story = story,
+                onStoryClick = { onNavigateToStoryDetail(story.storyId) },
+                onDeleteClick = { onDeleteStory(story.storyId) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun ErrorSnackbar(error: String) {
+    Snackbar(
+        modifier = Modifier.padding(16.dp)
+    ) {
+        Text(error)
     }
 }
 
@@ -194,129 +228,12 @@ fun StoryListItem(
                 .padding(12.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            if (story.coverImageUrl != null) {
-                AsyncImage(
-                    model = story.coverImageUrl,
-                    contentDescription = story.title,
-                    modifier = Modifier
-                        .size(100.dp, 140.dp)
-                        .clip(RoundedCornerShape(8.dp)),
-                    contentScale = ContentScale.Crop
-                )
-            } else {
-                Box(
-                    modifier = Modifier
-                        .size(100.dp, 140.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.MenuBook,
-                        contentDescription = null,
-                        modifier = Modifier.size(48.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
+            StoryCoverImage(coverUrl = story.coverImageUrl)
 
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight(),
-                verticalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Text(
-                        text = story.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-
-                    Text(
-                        text = story.synopsis,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-
-                    if (story.genre != null) {
-                        AssistChip(
-                            onClick = {},
-                            label = {
-                                Text(
-                                    story.genre,
-                                    style = MaterialTheme.typography.labelSmall
-                                )
-                            }
-                        )
-                    }
-                }
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.RemoveRedEye,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = "${story.viewCount}",
-                            style = MaterialTheme.typography.labelSmall
-                        )
-                    }
-
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.MenuBook,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = "${story.chapters.size} caps",
-                            style = MaterialTheme.typography.labelSmall
-                        )
-                    }
-
-                    if (story.isDraft && !story.isPublished) {
-                        Badge(
-                            containerColor = MaterialTheme.colorScheme.tertiary
-                        ) {
-                            Text(
-                                "Borrador",
-                                style = MaterialTheme.typography.labelSmall
-                            )
-                        }
-                    }
-
-                    if (story.isPublished) {
-                        Badge(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        ) {
-                            Text(
-                                "Publicada",
-                                style = MaterialTheme.typography.labelSmall
-                            )
-                        }
-                    }
-                }
-            }
+            StoryInfoColumn(
+                story = story,
+                modifier = Modifier.weight(1f)
+            )
 
             IconButton(onClick = { showDeleteDialog = true }) {
                 Icon(
@@ -329,41 +246,183 @@ fun StoryListItem(
     }
 
     if (showDeleteDialog) {
-        AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
-            title = {
-                Text(
-                    "Eliminar Historia",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-            },
-            text = {
-                Text(
-                    "¿Estás seguro de que deseas eliminar \"${story.title}\"? Esta acción no se puede deshacer.",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showDeleteDialog = false
-                        onDeleteClick()
-                    },
-                    colors = ButtonDefaults.textButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error
-                    )
-                ) {
-                    Text("Eliminar")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("Cancelar")
-                }
+        DeleteStoryDialog(
+            storyTitle = story.title,
+            onDismiss = { showDeleteDialog = false },
+            onConfirm = {
+                showDeleteDialog = false
+                onDeleteClick()
             }
         )
     }
+}
+
+@Composable
+private fun StoryCoverImage(coverUrl: String?) {
+    if (coverUrl != null) {
+        AsyncImage(
+            model = coverUrl,
+            contentDescription = null,
+            modifier = Modifier
+                .size(100.dp, 140.dp)
+                .clip(RoundedCornerShape(8.dp)),
+            contentScale = ContentScale.Crop
+        )
+    } else {
+        Box(
+            modifier = Modifier
+                .size(100.dp, 140.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.MenuBook,
+                contentDescription = null,
+                modifier = Modifier.size(48.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+private fun StoryInfoColumn(
+    story: StoryDetail,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = story.title,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
+        )
+
+        Text(
+            text = story.synopsis,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
+        )
+
+        StoryMetadata(story = story)
+
+        StoryStatusBadges(story = story)
+    }
+}
+
+@Composable
+private fun StoryMetadata(story: StoryDetail) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.RemoveRedEye,
+                contentDescription = null,
+                modifier = Modifier.size(16.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                text = "${story.viewCount}",
+                style = MaterialTheme.typography.labelSmall
+            )
+        }
+
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.MenuBook,
+                contentDescription = null,
+                modifier = Modifier.size(16.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                text = "${story.chapters.size} caps",
+                style = MaterialTheme.typography.labelSmall
+            )
+        }
+    }
+}
+
+@Composable
+private fun StoryStatusBadges(story: StoryDetail) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        if (story.isDraft && !story.isPublished) {
+            Badge(
+                containerColor = MaterialTheme.colorScheme.tertiary
+            ) {
+                Text(
+                    "Borrador",
+                    style = MaterialTheme.typography.labelSmall
+                )
+            }
+        }
+
+        if (story.isPublished) {
+            Badge(
+                containerColor = MaterialTheme.colorScheme.primary
+            ) {
+                Text(
+                    "Publicada",
+                    style = MaterialTheme.typography.labelSmall
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DeleteStoryDialog(
+    storyTitle: String,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                "Eliminar Historia",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Text(
+                "¿Estás seguro de que deseas eliminar \"$storyTitle\"? Esta acción no se puede deshacer.",
+                style = MaterialTheme.typography.bodyMedium
+            )
+        },
+        confirmButton = {
+            TextButton(
+                onClick = onConfirm,
+                colors = ButtonDefaults.textButtonColors(
+                    contentColor = MaterialTheme.colorScheme.error
+                )
+            ) {
+                Text("Eliminar")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar")
+            }
+        }
+    )
 }
 
 @Composable
@@ -378,36 +437,42 @@ fun EmptyStoriesState(filter: StoryFilter) {
             modifier = Modifier.padding(32.dp)
         ) {
             Icon(
-                imageVector = when (filter) {
-                    StoryFilter.ALL -> Icons.Default.MenuBook
-                    StoryFilter.DRAFTS -> Icons.Default.Edit
-                    StoryFilter.PUBLISHED -> Icons.Default.Check
-                },
+                imageVector = getEmptyStateIcon(filter),
                 contentDescription = null,
                 modifier = Modifier.size(64.dp),
                 tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
             )
 
             Text(
-                text = when (filter) {
-                    StoryFilter.ALL -> "No tienes historias"
-                    StoryFilter.DRAFTS -> "No tienes borradores"
-                    StoryFilter.PUBLISHED -> "No tienes historias publicadas"
-                },
+                text = getEmptyStateTitle(filter),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
             )
 
             Text(
-                text = when (filter) {
-                    StoryFilter.ALL -> "Comienza a escribir tu primera historia"
-                    StoryFilter.DRAFTS -> "Tus borradores aparecerán aquí"
-                    StoryFilter.PUBLISHED -> "Publica una historia para verla aquí"
-                },
+                text = getEmptyStateMessage(filter),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
             )
         }
     }
+}
+
+private fun getEmptyStateIcon(filter: StoryFilter) = when (filter) {
+    StoryFilter.ALL -> Icons.Default.MenuBook
+    StoryFilter.DRAFTS -> Icons.Default.Edit
+    StoryFilter.PUBLISHED -> Icons.Default.Check
+}
+
+private fun getEmptyStateTitle(filter: StoryFilter) = when (filter) {
+    StoryFilter.ALL -> "No tienes historias"
+    StoryFilter.DRAFTS -> "No tienes borradores"
+    StoryFilter.PUBLISHED -> "No tienes historias publicadas"
+}
+
+private fun getEmptyStateMessage(filter: StoryFilter) = when (filter) {
+    StoryFilter.ALL -> "Comienza a escribir tu primera historia"
+    StoryFilter.DRAFTS -> "Tus borradores aparecerán aquí"
+    StoryFilter.PUBLISHED -> "Publica una historia para verla aquí"
 }
