@@ -32,134 +32,216 @@ fun CreateStoryScreen(
             CreateStoryTopBar(onNavigateBack = onNavigateBack)
         }
     ) { padding ->
-        Box(
+        CreateStoryContent(
+            state = state,
+            onEvent = viewModel::onEvent,
+            modifier = Modifier.padding(padding)
+        )
+    }
+}
+
+@Composable
+private fun CreateStoryContent(
+    state: CreateStoryUiState,
+    onEvent: (CreateStoryEvent) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier.fillMaxSize()
+    ) {
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
+            CreateStoryHeader()
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            StoryTitleTextField(
+                title = state.title,
+                error = state.titleError,
+                onTitleChanged = { onEvent(CreateStoryEvent.OnTitleChanged(it)) }
+            )
+
+            StorySynopsisTextField(
+                synopsis = state.synopsis,
+                error = state.synopsisError,
+                onSynopsisChanged = { onEvent(CreateStoryEvent.OnSynopsisChanged(it)) }
+            )
+
+            GenreDropdownMenu(
+                selectedGenre = state.genre,
+                onGenreSelected = { onEvent(CreateStoryEvent.OnGenreChanged(it)) },
+                error = state.genreError
+            )
+
+            TagsTextField(
+                tags = state.tags,
+                onTagsChanged = { onEvent(CreateStoryEvent.OnTagsChanged(it)) }
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            StoryActionButtons(
+                isLoading = state.isLoading,
+                onSaveAsDraft = { onEvent(CreateStoryEvent.OnSaveAsDraft) },
+                onPublish = { onEvent(CreateStoryEvent.OnPublish) }
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+        }
+
+        ErrorSnackbar(error = state.error)
+    }
+}
+
+@Composable
+private fun CreateStoryHeader() {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            text = "Crear Nueva Historia",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold
+        )
+
+        Text(
+            text = "Completa los detalles de tu historia",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+        )
+    }
+}
+
+@Composable
+private fun StoryTitleTextField(
+    title: String,
+    error: String?,
+    onTitleChanged: (String) -> Unit
+) {
+    OutlinedTextField(
+        value = title,
+        onValueChange = onTitleChanged,
+        label = { Text("Título") },
+        placeholder = { Text("Ingresa el título de tu historia") },
+        modifier = Modifier.fillMaxWidth(),
+        isError = error != null,
+        supportingText = {
+            if (error != null) {
                 Text(
-                    text = "Crear Nueva Historia",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold
+                    text = error,
+                    color = MaterialTheme.colorScheme.error
                 )
+            } else {
+                Text("${title.length}/200 caracteres")
+            }
+        },
+        singleLine = true
+    )
+}
 
+@Composable
+private fun StorySynopsisTextField(
+    synopsis: String,
+    error: String?,
+    onSynopsisChanged: (String) -> Unit
+) {
+    OutlinedTextField(
+        value = synopsis,
+        onValueChange = onSynopsisChanged,
+        label = { Text("Sinopsis") },
+        placeholder = { Text("Describe tu historia") },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(200.dp),
+        isError = error != null,
+        supportingText = {
+            if (error != null) {
                 Text(
-                    text = "Completa los detalles de tu historia",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    text = error,
+                    color = MaterialTheme.colorScheme.error
                 )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                val titleError = state.titleError
-                OutlinedTextField(
-                    value = state.title,
-                    onValueChange = { viewModel.onEvent(CreateStoryEvent.OnTitleChanged(it)) },
-                    label = { Text("Título") },
-                    placeholder = { Text("Ingresa el título de tu historia") },
-                    modifier = Modifier.fillMaxWidth(),
-                    isError = titleError != null,
-                    supportingText = {
-                        if (titleError != null) {
-                            Text(
-                                text = titleError,
-                                color = MaterialTheme.colorScheme.error
-                            )
-                        } else {
-                            Text("${state.title.length}/200 caracteres")
-                        }
-                    },
-                    singleLine = true
-                )
-
-                val synopsisError = state.synopsisError
-                OutlinedTextField(
-                    value = state.synopsis,
-                    onValueChange = { viewModel.onEvent(CreateStoryEvent.OnSynopsisChanged(it)) },
-                    label = { Text("Sinopsis") },
-                    placeholder = { Text("Describe tu historia") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp),
-                    isError = synopsisError != null,
-                    supportingText = {
-                        if (synopsisError != null) {
-                            Text(
-                                text = synopsisError,
-                                color = MaterialTheme.colorScheme.error
-                            )
-                        } else {
-                            Text("${state.synopsis.length}/1000 caracteres")
-                        }
-                    },
-                    maxLines = 8
-                )
-
-                GenreDropdownMenu(
-                    selectedGenre = state.genre,
-                    onGenreSelected = { viewModel.onEvent(CreateStoryEvent.OnGenreChanged(it)) },
-                    error = state.genreError
-                )
-
-                OutlinedTextField(
-                    value = state.tags,
-                    onValueChange = { viewModel.onEvent(CreateStoryEvent.OnTagsChanged(it)) },
-                    label = { Text("Etiquetas (opcional)") },
-                    placeholder = { Text("romance, aventura, fantasía") },
-                    modifier = Modifier.fillMaxWidth(),
-                    supportingText = {
-                        Text("Separa las etiquetas con comas")
-                    },
-                    singleLine = true
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    OutlinedButton(
-                        onClick = { viewModel.onEvent(CreateStoryEvent.OnSaveAsDraft) },
-                        modifier = Modifier.weight(1f),
-                        enabled = !state.isLoading
-                    ) {
-                        Text("Guardar como Borrador")
-                    }
-
-                    Button(
-                        onClick = { viewModel.onEvent(CreateStoryEvent.OnPublish) },
-                        modifier = Modifier.weight(1f),
-                        enabled = !state.isLoading
-                    ) {
-                        if (state.isLoading) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(20.dp),
-                                color = MaterialTheme.colorScheme.onPrimary
-                            )
-                        } else {
-                            Text("Publicar")
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(32.dp))
+            } else {
+                Text("${synopsis.length}/1000 caracteres")
             }
+        },
+        maxLines = 8
+    )
+}
 
-            state.error?.let { error ->
-                Snackbar(
-                    modifier = Modifier.padding(16.dp)
-                ) {
-                    Text(error)
-                }
-            }
+@Composable
+private fun TagsTextField(
+    tags: String,
+    onTagsChanged: (String) -> Unit
+) {
+    OutlinedTextField(
+        value = tags,
+        onValueChange = onTagsChanged,
+        label = { Text("Etiquetas (opcional)") },
+        placeholder = { Text("romance, aventura, fantasía") },
+        modifier = Modifier.fillMaxWidth(),
+        supportingText = {
+            Text("Separa las etiquetas con comas")
+        },
+        singleLine = true
+    )
+}
+
+@Composable
+private fun StoryActionButtons(
+    isLoading: Boolean,
+    onSaveAsDraft: () -> Unit,
+    onPublish: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        OutlinedButton(
+            onClick = onSaveAsDraft,
+            modifier = Modifier.weight(1f),
+            enabled = !isLoading
+        ) {
+            Text("Guardar como Borrador")
+        }
+
+        PublishStoryButton(
+            isLoading = isLoading,
+            onClick = onPublish
+        )
+    }
+}
+
+@Composable
+private fun RowScope.PublishStoryButton(
+    isLoading: Boolean,
+    onClick: () -> Unit
+) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier.weight(1f),
+        enabled = !isLoading
+    ) {
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(20.dp),
+                color = MaterialTheme.colorScheme.onPrimary
+            )
+        } else {
+            Text("Publicar")
+        }
+    }
+}
+
+@Composable
+private fun ErrorSnackbar(error: String?) {
+    error?.let {
+        Snackbar(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text(it)
         }
     }
 }
@@ -232,9 +314,9 @@ fun GenreDropdownMenu(
                 .menuAnchor(),
             isError = error != null,
             supportingText = {
-                if (error != null) {
+                error?.let {
                     Text(
-                        text = error,
+                        text = it,
                         color = MaterialTheme.colorScheme.error
                     )
                 }
