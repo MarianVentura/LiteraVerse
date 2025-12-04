@@ -23,6 +23,7 @@ class RemoteDataSource @Inject constructor(
 ) {
     private companion object {
         const val EMPTY_RESPONSE_ERROR = "Respuesta vacía del servidor"
+        const val NETWORK_ERROR = "Error de red"
     }
 
     suspend fun login(request: LoginRequest): Resource<LoginResponse> {
@@ -38,7 +39,7 @@ class RemoteDataSource @Inject constructor(
                 }
             }
         } catch (e: Exception) {
-            Resource.Error(e.localizedMessage ?: "Error de red")
+            Resource.Error(e.localizedMessage ?: NETWORK_ERROR)
         }
     }
 
@@ -55,7 +56,7 @@ class RemoteDataSource @Inject constructor(
                 }
             }
         } catch (e: Exception) {
-            Resource.Error(e.localizedMessage ?: "Error de red")
+            Resource.Error(e.localizedMessage ?: NETWORK_ERROR)
         }
     }
 
@@ -68,7 +69,7 @@ class RemoteDataSource @Inject constructor(
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
         } catch (e: Exception) {
-            Resource.Error(e.localizedMessage ?: "Error de red")
+            Resource.Error(e.localizedMessage ?: NETWORK_ERROR)
         }
     }
 
@@ -82,7 +83,7 @@ class RemoteDataSource @Inject constructor(
                 Resource.Error("Token inválido")
             }
         } catch (e: Exception) {
-            Resource.Error(e.localizedMessage ?: "Error de red")
+            Resource.Error(e.localizedMessage ?: NETWORK_ERROR)
         }
     }
 
@@ -96,7 +97,7 @@ class RemoteDataSource @Inject constructor(
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
         } catch (e: Exception) {
-            Resource.Error(e.localizedMessage ?: "Error de red")
+            Resource.Error(e.localizedMessage ?: NETWORK_ERROR)
         }
     }
 
@@ -110,7 +111,7 @@ class RemoteDataSource @Inject constructor(
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
         } catch (e: Exception) {
-            Resource.Error(e.localizedMessage ?: "Error de red")
+            Resource.Error(e.localizedMessage ?: NETWORK_ERROR)
         }
     }
 
@@ -124,7 +125,7 @@ class RemoteDataSource @Inject constructor(
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
         } catch (e: Exception) {
-            Resource.Error(e.localizedMessage ?: "Error de red")
+            Resource.Error(e.localizedMessage ?: NETWORK_ERROR)
         }
     }
 
@@ -138,7 +139,7 @@ class RemoteDataSource @Inject constructor(
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
         } catch (e: Exception) {
-            Resource.Error(e.localizedMessage ?: "Error de red")
+            Resource.Error(e.localizedMessage ?: NETWORK_ERROR)
         }
     }
 
@@ -152,7 +153,7 @@ class RemoteDataSource @Inject constructor(
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
         } catch (e: Exception) {
-            Resource.Error(e.localizedMessage ?: "Error de red")
+            Resource.Error(e.localizedMessage ?: NETWORK_ERROR)
         }
     }
 
@@ -166,7 +167,7 @@ class RemoteDataSource @Inject constructor(
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
         } catch (e: Exception) {
-            Resource.Error(e.localizedMessage ?: "Error de red")
+            Resource.Error(e.localizedMessage ?: NETWORK_ERROR)
         }
     }
 
@@ -180,7 +181,7 @@ class RemoteDataSource @Inject constructor(
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
         } catch (e: Exception) {
-            Resource.Error(e.localizedMessage ?: "Error de red")
+            Resource.Error(e.localizedMessage ?: NETWORK_ERROR)
         }
     }
 
@@ -194,7 +195,7 @@ class RemoteDataSource @Inject constructor(
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
         } catch (e: Exception) {
-            Resource.Error(e.localizedMessage ?: "Error de red")
+            Resource.Error(e.localizedMessage ?: NETWORK_ERROR)
         }
     }
 
@@ -215,7 +216,7 @@ class RemoteDataSource @Inject constructor(
             val chapters = chaptersResponse.body() ?: emptyList()
             Resource.Success(Pair(story, chapters))
         } catch (e: Exception) {
-            Resource.Error(e.localizedMessage ?: "Error de red")
+            Resource.Error(e.localizedMessage ?: NETWORK_ERROR)
         }
     }
 
@@ -229,7 +230,7 @@ class RemoteDataSource @Inject constructor(
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
         } catch (e: Exception) {
-            Resource.Error(e.localizedMessage ?: "Error de red")
+            Resource.Error(e.localizedMessage ?: NETWORK_ERROR)
         }
     }
 
@@ -242,7 +243,7 @@ class RemoteDataSource @Inject constructor(
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
         } catch (e: Exception) {
-            Resource.Error(e.localizedMessage ?: "Error de red")
+            Resource.Error(e.localizedMessage ?: NETWORK_ERROR)
         }
     }
 
@@ -255,7 +256,7 @@ class RemoteDataSource @Inject constructor(
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
         } catch (e: Exception) {
-            Resource.Error(e.localizedMessage ?: "Error de red")
+            Resource.Error(e.localizedMessage ?: NETWORK_ERROR)
         }
     }
 
@@ -268,7 +269,7 @@ class RemoteDataSource @Inject constructor(
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
         } catch (e: Exception) {
-            Resource.Error(e.localizedMessage ?: "Error de red")
+            Resource.Error(e.localizedMessage ?: NETWORK_ERROR)
         }
     }
 
@@ -282,7 +283,7 @@ class RemoteDataSource @Inject constructor(
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
         } catch (e: Exception) {
-            Resource.Error(e.localizedMessage ?: "Error de red")
+            Resource.Error(e.localizedMessage ?: NETWORK_ERROR)
         }
     }
 
@@ -296,7 +297,7 @@ class RemoteDataSource @Inject constructor(
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
         } catch (e: Exception) {
-            Resource.Error(e.localizedMessage ?: "Error de red")
+            Resource.Error(e.localizedMessage ?: NETWORK_ERROR)
         }
     }
 
@@ -310,7 +311,7 @@ class RemoteDataSource @Inject constructor(
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
         } catch (e: Exception) {
-            Resource.Error(e.localizedMessage ?: "Error de red")
+            Resource.Error(e.localizedMessage ?: NETWORK_ERROR)
         }
     }
 
@@ -324,7 +325,7 @@ class RemoteDataSource @Inject constructor(
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
         } catch (e: Exception) {
-            Resource.Error(e.localizedMessage ?: "Error de red")
+            Resource.Error(e.localizedMessage ?: NETWORK_ERROR)
         }
     }
 
@@ -337,7 +338,7 @@ class RemoteDataSource @Inject constructor(
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
         } catch (e: Exception) {
-            Resource.Error(e.localizedMessage ?: "Error de red")
+            Resource.Error(e.localizedMessage ?: NETWORK_ERROR)
         }
     }
 
@@ -350,7 +351,7 @@ class RemoteDataSource @Inject constructor(
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
         } catch (e: Exception) {
-            Resource.Error(e.localizedMessage ?: "Error de red")
+            Resource.Error(e.localizedMessage ?: NETWORK_ERROR)
         }
     }
 
@@ -363,7 +364,7 @@ class RemoteDataSource @Inject constructor(
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
         } catch (e: Exception) {
-            Resource.Error(e.localizedMessage ?: "Error de red")
+            Resource.Error(e.localizedMessage ?: NETWORK_ERROR)
         }
     }
 
@@ -377,7 +378,7 @@ class RemoteDataSource @Inject constructor(
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
         } catch (e: Exception) {
-            Resource.Error(e.localizedMessage ?: "Error de red")
+            Resource.Error(e.localizedMessage ?: NETWORK_ERROR)
         }
     }
 
@@ -390,7 +391,7 @@ class RemoteDataSource @Inject constructor(
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
         } catch (e: Exception) {
-            Resource.Error(e.localizedMessage ?: "Error de red")
+            Resource.Error(e.localizedMessage ?:NETWORK_ERROR)
         }
     }
 
@@ -403,7 +404,7 @@ class RemoteDataSource @Inject constructor(
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
         } catch (e: Exception) {
-            Resource.Error(e.localizedMessage ?: "Error de red")
+            Resource.Error(e.localizedMessage ?: NETWORK_ERROR)
         }
     }
 
@@ -417,7 +418,7 @@ class RemoteDataSource @Inject constructor(
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
         } catch (e: Exception) {
-            Resource.Error(e.localizedMessage ?: "Error de red")
+            Resource.Error(e.localizedMessage ?: NETWORK_ERROR)
         }
     }
 
@@ -444,7 +445,7 @@ class RemoteDataSource @Inject constructor(
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
         } catch (e: Exception) {
-            Resource.Error(e.localizedMessage ?: "Error de red")
+            Resource.Error(e.localizedMessage ?: NETWORK_ERROR)
         }
     }
 
@@ -458,7 +459,7 @@ class RemoteDataSource @Inject constructor(
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
         } catch (e: Exception) {
-            Resource.Error(e.localizedMessage ?: "Error de red")
+            Resource.Error(e.localizedMessage ?: NETWORK_ERROR)
         }
     }
 
@@ -472,7 +473,7 @@ class RemoteDataSource @Inject constructor(
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
         } catch (e: Exception) {
-            Resource.Error(e.localizedMessage ?: "Error de red")
+            Resource.Error(e.localizedMessage ?: NETWORK_ERROR)
         }
     }
 
@@ -486,7 +487,7 @@ class RemoteDataSource @Inject constructor(
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
         } catch (e: Exception) {
-            Resource.Error(e.localizedMessage ?: "Error de red")
+            Resource.Error(e.localizedMessage ?: NETWORK_ERROR)
         }
     }
 
@@ -499,7 +500,7 @@ class RemoteDataSource @Inject constructor(
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
             }
         } catch (e: Exception) {
-            Resource.Error(e.localizedMessage ?: "Error de red")
+            Resource.Error(e.localizedMessage ?: NETWORK_ERROR)
         }
     }
 }
