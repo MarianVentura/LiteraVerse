@@ -9,6 +9,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -256,5 +257,76 @@ fun GenreDropdownMenu(
                 )
             }
         }
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+private fun CreateStoryScreenPreview() {
+    MaterialTheme {
+        Scaffold(
+            topBar = {
+                CreateStoryTopBar(onNavigateBack = {})
+            }
+        ) { padding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text(
+                    text = "Crear Nueva Historia",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold
+                )
+
+                OutlinedTextField(
+                    value = "Mi Nueva Historia",
+                    onValueChange = {},
+                    label = { Text("Título") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+
+                OutlinedTextField(
+                    value = "Esta es una historia épica sobre...",
+                    onValueChange = {},
+                    label = { Text("Sinopsis") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp),
+                    maxLines = 8
+                )
+
+                GenreDropdownMenu(
+                    selectedGenre = "Fantasía",
+                    onGenreSelected = {},
+                    error = null
+                )
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun CreateStoryTopBarPreview() {
+    MaterialTheme {
+        CreateStoryTopBar(onNavigateBack = {})
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun GenreDropdownMenuPreview() {
+    MaterialTheme {
+        GenreDropdownMenu(
+            selectedGenre = "Fantasía",
+            onGenreSelected = {},
+            error = null
+        )
     }
 }

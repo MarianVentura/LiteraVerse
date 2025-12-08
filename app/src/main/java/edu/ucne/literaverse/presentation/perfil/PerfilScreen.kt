@@ -45,6 +45,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -560,5 +561,70 @@ private fun formatDate(dateString: String): String {
         date?.let { outputFormat.format(it) } ?: dateString
     } catch (e: Exception) {
         dateString
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun PerfilTopBarPreview() {
+    MaterialTheme {
+        PerfilTopBar()
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun UserInfoCardPreview() {
+    MaterialTheme {
+        UserInfoCard(
+            userName = "usuario_demo",
+            userId = 123,
+            loginDate = "2024-12-01T10:30:00"
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun StatisticsCardPreview() {
+    MaterialTheme {
+        StatisticsCard(
+            storiesCount = 15,
+            publishedCount = 10,
+            totalViews = 5000,
+            favoritesCount = 25
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SessionsCardPreview() {
+    MaterialTheme {
+        SessionsCard(
+            sessions = listOf(
+                Session(
+                    sessionId = 1,
+                    userId = 1,
+                    token = "token",
+                    deviceInfo = "Chrome en Windows",
+                    createdAt = "2024-12-01T10:00:00",
+                    lastActivity = "2024-12-03T15:30:00",
+                    isActive = true
+                )
+            ),
+            isLoading = false
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun LogoutAllDialogPreview() {
+    MaterialTheme {
+        LogoutAllDialog(
+            onDismiss = {},
+            onConfirm = {}
+        )
     }
 }
