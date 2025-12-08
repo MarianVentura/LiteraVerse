@@ -48,61 +48,107 @@ fun StoryDetailReaderScreen(
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
-            if (state.isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center)
-                )
-            } else if (state.error != null) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(32.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Error,
-                        contentDescription = null,
-                        modifier = Modifier.size(64.dp),
-                        tint = MaterialTheme.colorScheme.error
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = state.error ?: "Error desconocido",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
-            } else if (state.story != null) {
-                StoryDetailReaderContent(
-                    story = state.story!!,
-                    isFavorite = state.isFavorite,
-                    isInLibrary = state.isInLibrary,
-                    onEvent = viewModel::onEvent,
-                    onNavigateBack = onNavigateBack,
-                    onNavigateToChapter = onNavigateToChapter
-                )
-            }
-        }
+        StoryDetailContent(
+            state = state,
+            padding = padding,
+            onEvent = viewModel::onEvent,
+            onNavigateBack = onNavigateBack,
+            onNavigateToChapter = onNavigateToChapter
+        )
     }
+
     if (state.showLibraryMenu) {
-        AddToLibraryMenu(
-            currentStates = LibraryStates(
-                isFavorite = state.isFavorite,
-                isReading = state.isReading,
-                isCompleted = state.isCompleted
-            ),
+        LibraryMenuDialog(
+            isFavorite = state.isFavorite,
+            isReading = state.isReading,
+            isCompleted = state.isCompleted,
             onDismiss = { viewModel.onEvent(StoryDetailReaderEvent.DismissLibraryMenu) },
             onSave = { states ->
                 viewModel.onEvent(StoryDetailReaderEvent.UpdateLibraryStates(states))
             }
         )
     }
+}
+
+@Composable
+private fun StoryDetailContent(
+    state: StoryDetailReaderUiState,
+    padding: PaddingValues,
+    onEvent: (StoryDetailReaderEvent) -> Unit,
+    onNavigateBack: () -> Unit,
+    onNavigateToChapter: (Int, Int) -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(padding)
+    ) {
+        when {
+            state.isLoading -> LoadingState()
+            state.error != null -> ErrorState(error = state.error)
+            state.story != null -> StoryDetailReaderContent(
+                story = state.story,
+                isFavorite = state.isFavorite,
+                isInLibrary = state.isInLibrary,
+                onEvent = onEvent,
+                onNavigateBack = onNavigateBack,
+                onNavigateToChapter = onNavigateToChapter
+            )
+        }
+    }
+}
+
+@Composable
+private fun LoadingState() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator()
+    }
+}
+
+@Composable
+private fun ErrorState(error: String) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            imageVector = Icons.Default.Error,
+            contentDescription = null,
+            modifier = Modifier.size(64.dp),
+            tint = MaterialTheme.colorScheme.error
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = error,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.error
+        )
+    }
+}
+
+@Composable
+private fun LibraryMenuDialog(
+    isFavorite: Boolean,
+    isReading: Boolean,
+    isCompleted: Boolean,
+    onDismiss: () -> Unit,
+    onSave: (LibraryStates) -> Unit
+) {
+    AddToLibraryMenu(
+        currentStates = LibraryStates(
+            isFavorite = isFavorite,
+            isReading = isReading,
+            isCompleted = isCompleted
+        ),
+        onDismiss = onDismiss,
+        onSave = onSave
+    )
 }
 
 @Composable
@@ -131,7 +177,8 @@ fun StoryDetailReaderContent(
                 isInLibrary = isInLibrary,
                 onStartReading = {
                     onEvent(StoryDetailReaderEvent.OnStartReading(onNavigateToChapter))
-                },                onToggleFavorite = { onEvent(StoryDetailReaderEvent.OnToggleFavorite) },
+                },
+                onToggleFavorite = { onEvent(StoryDetailReaderEvent.OnToggleFavorite) },
                 onAddToLibrary = { onEvent(StoryDetailReaderEvent.ShowLibraryMenu) }
             )
         }
@@ -179,63 +226,78 @@ fun StoryHeroSection(
             .fillMaxWidth()
             .height(400.dp)
     ) {
-        if (story.coverImageUrl != null) {
-            AsyncImage(
-                model = story.coverImageUrl,
-                contentDescription = story.title,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
-            )
-        } else {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.MenuBook,
-                    contentDescription = null,
-                    modifier = Modifier.size(120.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
+        StoryCoverImage(coverUrl = story.coverImageUrl)
 
+        StoryHeroGradientOverlay()
+
+        StoryHeroBackButton(onNavigateBack = onNavigateBack)
+    }
+}
+
+@Composable
+private fun StoryCoverImage(coverUrl: String?) {
+    if (coverUrl != null) {
+        AsyncImage(
+            model = coverUrl,
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+    } else {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.scrim.copy(alpha = 0.3f),
-                            MaterialTheme.colorScheme.scrim.copy(alpha = 0.7f)
-                        ),
-                        startY = 0f,
-                        endY = 1200f
-                    )
-                )
-        )
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-                .statusBarsPadding(),
-            horizontalArrangement = Arrangement.Start
+                .background(MaterialTheme.colorScheme.surfaceVariant),
+            contentAlignment = Alignment.Center
         ) {
-            IconButton(
-                onClick = onNavigateBack,
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f))
-            ) {
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Volver",
-                    tint = MaterialTheme.colorScheme.onSurface
+            Icon(
+                imageVector = Icons.Default.MenuBook,
+                contentDescription = null,
+                modifier = Modifier.size(120.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+private fun StoryHeroGradientOverlay() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.scrim.copy(alpha = 0.3f),
+                        MaterialTheme.colorScheme.scrim.copy(alpha = 0.7f)
+                    ),
+                    startY = 0f,
+                    endY = 1200f
                 )
-            }
+            )
+    )
+}
+
+@Composable
+private fun StoryHeroBackButton(onNavigateBack: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .statusBarsPadding(),
+        horizontalArrangement = Arrangement.Start
+    ) {
+        IconButton(
+            onClick = onNavigateBack,
+            modifier = Modifier
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f))
+        ) {
+            Icon(
+                imageVector = Icons.Default.ArrowBack,
+                contentDescription = "Volver",
+                tint = MaterialTheme.colorScheme.onSurface
+            )
         }
     }
 }
@@ -255,37 +317,10 @@ fun StoryInfoSection(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        if (!story.genre.isNullOrBlank() || !story.tags.isNullOrBlank()) {
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                story.genre?.let {
-                    item {
-                        AssistChip(
-                            onClick = {},
-                            label = { Text(it) },
-                            colors = AssistChipDefaults.assistChipColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                labelColor = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                        )
-                    }
-                }
-
-                story.tags?.split(",")?.take(3)?.forEach { tag ->
-                    item {
-                        AssistChip(
-                            onClick = {},
-                            label = { Text(tag.trim()) },
-                            colors = AssistChipDefaults.assistChipColors(
-                                containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                labelColor = MaterialTheme.colorScheme.onSecondaryContainer
-                            )
-                        )
-                    }
-                }
-            }
-        }
+        StoryGenreAndTagsSection(
+            genre = story.genre,
+            tags = story.tags
+        )
 
         Text(
             text = story.title,
@@ -299,88 +334,197 @@ fun StoryInfoSection(
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
         )
 
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
+        StoryMetadataRow(
+            viewCount = story.viewCount,
+            chapterCount = story.publishedChapters.size
+        )
+
+        StoryActionButtons(
+            isFavorite = isFavorite,
+            isInLibrary = isInLibrary,
+            onStartReading = onStartReading,
+            onToggleFavorite = onToggleFavorite,
+            onAddToLibrary = onAddToLibrary
+        )
+    }
+}
+
+@Composable
+private fun StoryGenreAndTagsSection(
+    genre: String?,
+    tags: String?
+) {
+    if (!genre.isNullOrBlank() || !tags.isNullOrBlank()) {
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Icon(
-                imageVector = Icons.Default.RemoveRedEye,
-                contentDescription = null,
-                modifier = Modifier.size(20.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
-            Text(
-                text = "${story.viewCount}",
-                style = MaterialTheme.typography.bodyMedium
-            )
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Icon(
-                imageVector = Icons.Default.MenuBook,
-                contentDescription = null,
-                modifier = Modifier.size(20.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
-            Text(
-                text = "${story.publishedChapters.size} capítulos",
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Button(
-                onClick = onStartReading,
-                modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                ),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Text(
-                    text = "Comenzar a Leer",
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    fontWeight = FontWeight.Bold
-                )
+            genre?.let {
+                item {
+                    GenreChip(genre = it)
+                }
             }
 
-            IconButton(
-                onClick = onToggleFavorite,
-                modifier = Modifier
-                    .size(56.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(
-                        if (isFavorite) MaterialTheme.colorScheme.primaryContainer
-                        else MaterialTheme.colorScheme.surfaceVariant
-                    )
-            ) {
-                Icon(
-                    imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                    contentDescription = "Favorito",
-                    tint = if (isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            IconButton(
-                onClick = onAddToLibrary,
-                modifier = Modifier
-                    .size(56.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(
-                        if (isInLibrary) MaterialTheme.colorScheme.primaryContainer
-                        else MaterialTheme.colorScheme.surfaceVariant
-                    )
-            ) {
-                Icon(
-                    imageVector = if (isInLibrary) Icons.Default.LibraryBooks else Icons.Default.LibraryAdd,
-                    contentDescription = "Biblioteca",
-                    tint = if (isInLibrary) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                )
+            tags?.split(",")?.take(3)?.forEach { tag ->
+                item {
+                    TagChip(tag = tag.trim())
+                }
             }
         }
+    }
+}
+
+@Composable
+private fun GenreChip(genre: String) {
+    AssistChip(
+        onClick = {},
+        label = { Text(genre) },
+        colors = AssistChipDefaults.assistChipColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            labelColor = MaterialTheme.colorScheme.onPrimaryContainer
+        )
+    )
+}
+
+@Composable
+private fun TagChip(tag: String) {
+    AssistChip(
+        onClick = {},
+        label = { Text(tag) },
+        colors = AssistChipDefaults.assistChipColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            labelColor = MaterialTheme.colorScheme.onSecondaryContainer
+        )
+    )
+}
+
+@Composable
+private fun StoryMetadataRow(
+    viewCount: Int,
+    chapterCount: Int
+) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = Icons.Default.RemoveRedEye,
+            contentDescription = null,
+            modifier = Modifier.size(20.dp),
+            tint = MaterialTheme.colorScheme.primary
+        )
+        Text(
+            text = "$viewCount",
+            style = MaterialTheme.typography.bodyMedium
+        )
+
+        Spacer(modifier = Modifier.width(8.dp))
+
+        Icon(
+            imageVector = Icons.Default.MenuBook,
+            contentDescription = null,
+            modifier = Modifier.size(20.dp),
+            tint = MaterialTheme.colorScheme.primary
+        )
+        Text(
+            text = "$chapterCount capítulos",
+            style = MaterialTheme.typography.bodyMedium
+        )
+    }
+}
+
+@Composable
+private fun StoryActionButtons(
+    isFavorite: Boolean,
+    isInLibrary: Boolean,
+    onStartReading: () -> Unit,
+    onToggleFavorite: () -> Unit,
+    onAddToLibrary: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        StartReadingButton(
+            onStartReading = onStartReading,
+            modifier = Modifier.weight(1f)
+        )
+
+        FavoriteButton(
+            isFavorite = isFavorite,
+            onToggleFavorite = onToggleFavorite
+        )
+
+        LibraryButton(
+            isInLibrary = isInLibrary,
+            onAddToLibrary = onAddToLibrary
+        )
+    }
+}
+
+@Composable
+private fun StartReadingButton(
+    onStartReading: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Button(
+        onClick = onStartReading,
+        modifier = modifier,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.primary
+        ),
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Text(
+            text = "Comenzar a Leer",
+            color = MaterialTheme.colorScheme.onPrimary,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+
+@Composable
+private fun FavoriteButton(
+    isFavorite: Boolean,
+    onToggleFavorite: () -> Unit
+) {
+    IconButton(
+        onClick = onToggleFavorite,
+        modifier = Modifier
+            .size(56.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(
+                if (isFavorite) MaterialTheme.colorScheme.primaryContainer
+                else MaterialTheme.colorScheme.surfaceVariant
+            )
+    ) {
+        Icon(
+            imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+            contentDescription = "Favorito",
+            tint = if (isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Composable
+private fun LibraryButton(
+    isInLibrary: Boolean,
+    onAddToLibrary: () -> Unit
+) {
+    IconButton(
+        onClick = onAddToLibrary,
+        modifier = Modifier
+            .size(56.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(
+                if (isInLibrary) MaterialTheme.colorScheme.primaryContainer
+                else MaterialTheme.colorScheme.surfaceVariant
+            )
+    ) {
+        Icon(
+            imageVector = if (isInLibrary) Icons.Default.LibraryBooks else Icons.Default.LibraryAdd,
+            contentDescription = "Biblioteca",
+            tint = if (isInLibrary) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
@@ -423,57 +567,49 @@ fun StatsSection(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
-        StatCard(
-            value = formatNumber(viewCount),
-            label = "Lecturas",
-            color = MaterialTheme.colorScheme.primary
+        StatItem(
+            icon = Icons.Default.RemoveRedEye,
+            value = "$viewCount",
+            label = "Vistas"
         )
 
-        StatCard(
-            value = chapterCount.toString(),
-            label = "Capítulos",
-            color = MaterialTheme.colorScheme.secondary
+        StatItem(
+            icon = Icons.Default.MenuBook,
+            value = "$chapterCount",
+            label = "Capítulos"
         )
     }
 }
 
 @Composable
-fun StatCard(
+private fun StatItem(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
     value: String,
-    label: String,
-    color: androidx.compose.ui.graphics.Color
+    label: String
 ) {
-    Card(
-        modifier = Modifier
-            .width(140.dp)
-            .height(80.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = color.copy(alpha = 0.1f)
-        ),
-        shape = RoundedCornerShape(12.dp)
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = value,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = color
-            )
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-            )
-        }
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(24.dp)
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+        )
     }
 }
 
@@ -487,10 +623,10 @@ fun ChapterItem(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp)
             .clickable { onClick() },
+        shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
-        ),
-        shape = RoundedCornerShape(12.dp)
+        )
     ) {
         Row(
             modifier = Modifier
@@ -499,53 +635,36 @@ fun ChapterItem(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.weight(1f)
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primaryContainer),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = chapter.chapterNumber.toString(),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
+                Text(
+                    text = chapter.title,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
 
-                Column {
+                chapter.updatedAt?.let { updatedAt ->
                     Text(
-                        text = chapter.title,
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Medium,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        text = updatedAt,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                     )
-                    chapter.publishedAt?.let {
-                        Text(
-                            text = it.substringBefore('T'),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                        )
-                    }
                 }
             }
 
-            Text(
-                text = "Leer",
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold
+            Icon(
+                imageVector = Icons.Default.ChevronRight,
+                contentDescription = "Leer capítulo",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
 }
+
 
 private fun formatNumber(number: Int): String {
     return when {

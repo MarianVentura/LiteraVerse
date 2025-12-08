@@ -39,96 +39,180 @@ fun StoryChaptersScreen(
             StoryChaptersTopBar(onNavigateBack = onNavigateBack)
         },
         floatingActionButton = {
-            if (state.selectedTab == 1 && state.story != null) {
-                FloatingActionButton(
-                    onClick = { onNavigateToCreateChapter(state.story!!.storyId) },
-                    containerColor = MaterialTheme.colorScheme.primary
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "Agregar capítulo"
-                    )
-                }
-            }
+            StoryChaptersFab(
+                selectedTab = state.selectedTab,
+                story = state.story,
+                onCreateChapter = onNavigateToCreateChapter
+            )
         }
     ) { padding ->
-        if (state.isLoading) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
-        } else if (state.story != null) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-            ) {
-                TabRow(
-                    selectedTabIndex = state.selectedTab,
-                    containerColor = MaterialTheme.colorScheme.surface
-                ) {
-                    Tab(
-                        selected = state.selectedTab == 0,
-                        onClick = { viewModel.onEvent(StoryChaptersEvent.OnTabSelected(0)) },
-                        text = {
-                            Text(
-                                "Detalles",
-                                style = MaterialTheme.typography.titleSmall
-                            )
-                        }
-                    )
-                    Tab(
-                        selected = state.selectedTab == 1,
-                        onClick = { viewModel.onEvent(StoryChaptersEvent.OnTabSelected(1)) },
-                        text = {
-                            Text(
-                                "Capítulos",
-                                style = MaterialTheme.typography.titleSmall
-                            )
-                        }
-                    )
-                    Tab(
-                        selected = state.selectedTab == 2,
-                        onClick = { viewModel.onEvent(StoryChaptersEvent.OnTabSelected(2)) },
-                        text = {
-                            Text(
-                                "Notas",
-                                style = MaterialTheme.typography.titleSmall
-                            )
-                        }
-                    )
-                }
+        StoryChaptersContent(
+            state = state,
+            padding = padding,
+            onEvent = viewModel::onEvent,
+            onNavigateToChapterEditor = onNavigateToChapterEditor
+        )
+    }
+}
 
-                when (state.selectedTab) {
-                    0 -> StoryDetailsTab(
-                        story = state.story!!,
-                        chapters = state.chapters,
-                        onPublishStory = { viewModel.onEvent(StoryChaptersEvent.OnPublishStory) }
-                    )
-                    1 -> ChaptersTab(
-                        chapters = state.chapters,
-                        onChapterClick = { chapter ->
-                            onNavigateToChapterEditor(state.story!!.storyId, chapter.chapterId)
-                        },
-                        onDeleteChapter = { viewModel.onEvent(StoryChaptersEvent.OnDeleteChapter(it)) },
-                        onPublishChapter = { viewModel.onEvent(StoryChaptersEvent.OnPublishChapter(it)) }
-                    )
-                    2 -> NotesTab()
-                }
-            }
+@Composable
+private fun StoryChaptersFab(
+    selectedTab: Int,
+    story: StoryDetail?,
+    onCreateChapter: (Int) -> Unit
+) {
+    if (selectedTab == 1 && story != null) {
+        FloatingActionButton(
+            onClick = { onCreateChapter(story.storyId) },
+            containerColor = MaterialTheme.colorScheme.primary
+        ) {
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = "Agregar capítulo"
+            )
         }
+    }
+}
 
-        state.error?.let { error ->
-            Snackbar(
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Text(error)
+@Composable
+private fun StoryChaptersContent(
+    state: StoryChaptersUiState,
+    padding: PaddingValues,
+    onEvent: (StoryChaptersEvent) -> Unit,
+    onNavigateToChapterEditor: (Int, Int) -> Unit
+) {
+    when {
+        state.isLoading -> LoadingState(padding)
+        state.story != null -> StoryTabsContainer(
+            state = state,
+            padding = padding,
+            onEvent = onEvent,
+            onNavigateToChapterEditor = onNavigateToChapterEditor
+        )
+    }
+
+    state.error?.let { error ->
+        ErrorSnackbar(error = error)
+    }
+}
+
+@Composable
+private fun LoadingState(padding: PaddingValues) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(padding),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator()
+    }
+}
+
+@Composable
+private fun StoryTabsContainer(
+    state: StoryChaptersUiState,
+    padding: PaddingValues,
+    onEvent: (StoryChaptersEvent) -> Unit,
+    onNavigateToChapterEditor: (Int, Int) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(padding)
+    ) {
+        StoryChaptersTabs(
+            selectedTab = state.selectedTab,
+            onTabSelected = { onEvent(StoryChaptersEvent.OnTabSelected(it)) }
+        )
+
+        StoryTabContent(
+            selectedTab = state.selectedTab,
+            story = state.story!!,
+            chapters = state.chapters,
+            onPublishStory = { onEvent(StoryChaptersEvent.OnPublishStory) },
+            onChapterClick = { chapter ->
+                onNavigateToChapterEditor(state.story.storyId, chapter.chapterId)
+            },
+            onDeleteChapter = { onEvent(StoryChaptersEvent.OnDeleteChapter(it)) },
+            onPublishChapter = { onEvent(StoryChaptersEvent.OnPublishChapter(it)) }
+        )
+    }
+}
+
+@Composable
+private fun StoryChaptersTabs(
+    selectedTab: Int,
+    onTabSelected: (Int) -> Unit
+) {
+    TabRow(
+        selectedTabIndex = selectedTab,
+        containerColor = MaterialTheme.colorScheme.surface
+    ) {
+        Tab(
+            selected = selectedTab == 0,
+            onClick = { onTabSelected(0) },
+            text = {
+                Text(
+                    "Detalles",
+                    style = MaterialTheme.typography.titleSmall
+                )
             }
-        }
+        )
+        Tab(
+            selected = selectedTab == 1,
+            onClick = { onTabSelected(1) },
+            text = {
+                Text(
+                    "Capítulos",
+                    style = MaterialTheme.typography.titleSmall
+                )
+            }
+        )
+        Tab(
+            selected = selectedTab == 2,
+            onClick = { onTabSelected(2) },
+            text = {
+                Text(
+                    "Notas",
+                    style = MaterialTheme.typography.titleSmall
+                )
+            }
+        )
+    }
+}
+
+@Composable
+private fun StoryTabContent(
+    selectedTab: Int,
+    story: StoryDetail,
+    chapters: List<Chapter>,
+    onPublishStory: () -> Unit,
+    onChapterClick: (Chapter) -> Unit,
+    onDeleteChapter: (Int) -> Unit,
+    onPublishChapter: (Int) -> Unit
+) {
+    when (selectedTab) {
+        0 -> StoryDetailsTab(
+            story = story,
+            chapters = chapters,
+            onPublishStory = onPublishStory
+        )
+        1 -> ChaptersTab(
+            chapters = chapters,
+            onChapterClick = onChapterClick,
+            onDeleteChapter = onDeleteChapter,
+            onPublishChapter = onPublishChapter
+        )
+        2 -> NotesTab()
+    }
+}
+
+@Composable
+private fun ErrorSnackbar(error: String) {
+    Snackbar(
+        modifier = Modifier.padding(16.dp)
+    ) {
+        Text(error)
     }
 }
 
@@ -169,196 +253,199 @@ fun StoryDetailsTab(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item {
-            if (story.coverImageUrl != null) {
-                AsyncImage(
-                    model = story.coverImageUrl,
-                    contentDescription = story.title,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(300.dp)
-                        .clip(RoundedCornerShape(12.dp)),
-                    contentScale = ContentScale.Crop
-                )
-            } else {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(300.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.MenuBook,
-                        contentDescription = null,
-                        modifier = Modifier.size(80.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
+            StoryCoverSection(coverUrl = story.coverImageUrl)
         }
 
         item {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(
-                    text = story.title,
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    if (story.isDraft && !story.isPublished) {
-                        Badge(containerColor = MaterialTheme.colorScheme.tertiary) {
-                            Text(
-                                "Borrador",
-                                style = MaterialTheme.typography.labelSmall
-                            )
-                        }
-                    }
-                    if (story.isPublished) {
-                        Badge(containerColor = MaterialTheme.colorScheme.primary) {
-                            Text(
-                                "Publicada",
-                                style = MaterialTheme.typography.labelSmall
-                            )
-                        }
-                    }
-                }
-            }
+            Text(
+                text = story.title,
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold
+            )
         }
 
         item {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                )
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceAround
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            imageVector = Icons.Default.RemoveRedEye,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = "${story.viewCount}",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = "Vistas",
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
-
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            imageVector = Icons.Default.Book,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = "${chapters.size}",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = "Capítulos",
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
-                }
-            }
+            StoryStatsSection(
+                viewCount = story.viewCount,
+                chapterCount = chapters.size
+            )
         }
 
         item {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(
-                    text = "Sinopsis",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = story.synopsis,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
+            StorySynopsisSection(synopsis = story.synopsis)
         }
 
         if (story.genre != null) {
             item {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        text = "Género",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    AssistChip(
-                        onClick = {},
-                        label = {
-                            Text(
-                                story.genre,
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        }
-                    )
-                }
+                StoryGenreSection(genre = story.genre)
             }
         }
 
         if (story.tags != null) {
             item {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        text = "Etiquetas",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        story.tags.split(",").take(3).forEach { tag ->
-                            AssistChip(
-                                onClick = {},
-                                label = {
-                                    Text(
-                                        tag.trim(),
-                                        style = MaterialTheme.typography.bodySmall
-                                    )
-                                }
-                            )
-                        }
-                    }
-                }
+                StoryTagsSection(tags = story.tags)
             }
         }
 
         if (!story.isPublished) {
             item {
-                Button(
-                    onClick = onPublishStory,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Publish,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Publicar Historia")
-                }
+                PublishStoryButton(onPublishStory = onPublishStory)
             }
         }
+    }
+}
+
+@Composable
+private fun StoryCoverSection(coverUrl: String?) {
+    if (coverUrl != null) {
+        AsyncImage(
+            model = coverUrl,
+            contentDescription = null,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(300.dp)
+                .clip(RoundedCornerShape(12.dp)),
+            contentScale = ContentScale.Crop
+        )
+    } else {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(300.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.MenuBook,
+                contentDescription = null,
+                modifier = Modifier.size(64.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+private fun StoryStatsSection(
+    viewCount: Int,
+    chapterCount: Int
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(
+                imageVector = Icons.Default.RemoveRedEye,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                text = "$viewCount",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = "Vistas",
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
+
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(
+                imageVector = Icons.Default.Book,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                text = "$chapterCount",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = "Capítulos",
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
+    }
+}
+
+@Composable
+private fun StorySynopsisSection(synopsis: String) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            text = "Sinopsis",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            text = synopsis,
+            style = MaterialTheme.typography.bodyMedium
+        )
+    }
+}
+
+@Composable
+private fun StoryGenreSection(genre: String) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            text = "Género",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
+        )
+        AssistChip(
+            onClick = {},
+            label = {
+                Text(
+                    genre,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        )
+    }
+}
+
+@Composable
+private fun StoryTagsSection(tags: String) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            text = "Etiquetas",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
+        )
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            tags.split(",").take(3).forEach { tag ->
+                AssistChip(
+                    onClick = {},
+                    label = {
+                        Text(
+                            tag.trim(),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PublishStoryButton(onPublishStory: () -> Unit) {
+    Button(
+        onClick = onPublishStory,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Icon(
+            imageVector = Icons.Default.Publish,
+            contentDescription = null,
+            modifier = Modifier.size(20.dp)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text("Publicar Historia")
     }
 }
 
@@ -370,49 +457,69 @@ fun ChaptersTab(
     onPublishChapter: (Int) -> Unit
 ) {
     if (chapters.isEmpty()) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier.padding(32.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.MenuBook,
-                    contentDescription = null,
-                    modifier = Modifier.size(64.dp),
-                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-                )
-                Text(
-                    text = "No hay capítulos",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                )
-                Text(
-                    text = "Agrega tu primer capítulo",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                )
-            }
-        }
+        EmptyChaptersState()
     } else {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ChaptersList(
+            chapters = chapters,
+            onChapterClick = onChapterClick,
+            onDeleteChapter = onDeleteChapter,
+            onPublishChapter = onPublishChapter
+        )
+    }
+}
+
+@Composable
+private fun EmptyChaptersState() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.padding(32.dp)
         ) {
-            itemsIndexed(chapters) { index, chapter ->
-                ChapterListItem(
-                    chapter = chapter,
-                    chapterNumber = index + 1,
-                    onChapterClick = { onChapterClick(chapter) },
-                    onDeleteClick = { onDeleteChapter(chapter.chapterId) },
-                    onPublishClick = { onPublishChapter(chapter.chapterId) }
-                )
-            }
+            Icon(
+                imageVector = Icons.Default.MenuBook,
+                contentDescription = null,
+                modifier = Modifier.size(64.dp),
+                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+            )
+            Text(
+                text = "No hay capítulos",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+            )
+            Text(
+                text = "Agrega tu primer capítulo",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+            )
+        }
+    }
+}
+
+@Composable
+private fun ChaptersList(
+    chapters: List<Chapter>,
+    onChapterClick: (Chapter) -> Unit,
+    onDeleteChapter: (Int) -> Unit,
+    onPublishChapter: (Int) -> Unit
+) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        itemsIndexed(chapters) { index, chapter ->
+            ChapterListItem(
+                chapter = chapter,
+                chapterNumber = index + 1,
+                onChapterClick = { onChapterClick(chapter) },
+                onDeleteClick = { onDeleteChapter(chapter.chapterId) },
+                onPublishClick = { onPublishChapter(chapter.chapterId) }
+            )
         }
     }
 }
@@ -439,150 +546,196 @@ fun ChapterListItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(MaterialTheme.colorScheme.primaryContainer),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "$chapterNumber",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            }
+            ChapterInfo(
+                chapter = chapter,
+                chapterNumber = chapterNumber,
+                modifier = Modifier.weight(1f)
+            )
 
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Text(
-                    text = chapter.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    if (chapter.isDraft && !chapter.isPublished) {
-                        Badge(containerColor = MaterialTheme.colorScheme.tertiary) {
-                            Text(
-                                "Borrador",
-                                style = MaterialTheme.typography.labelSmall
-                            )
-                        }
-                    }
-                    if (chapter.isPublished) {
-                        Badge(containerColor = MaterialTheme.colorScheme.primary) {
-                            Text(
-                                "Publicado",
-                                style = MaterialTheme.typography.labelSmall
-                            )
-                        }
-                    }
-
-                    chapter.updatedAt?.let { date ->
-                        Text(
-                            text = date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                        )
-                    }
+            ChapterOptionsMenu(
+                isPublished = chapter.isPublished,
+                showMenu = showMenu,
+                onMenuToggle = { showMenu = it },
+                onPublishClick = {
+                    showMenu = false
+                    onPublishClick()
+                },
+                onDeleteClick = {
+                    showMenu = false
+                    showDeleteDialog = true
                 }
-            }
-
-            Box {
-                IconButton(onClick = { showMenu = true }) {
-                    Icon(
-                        imageVector = Icons.Default.MoreVert,
-                        contentDescription = "Opciones"
-                    )
-                }
-
-                DropdownMenu(
-                    expanded = showMenu,
-                    onDismissRequest = { showMenu = false }
-                ) {
-                    if (!chapter.isPublished) {
-                        DropdownMenuItem(
-                            text = { Text("Publicar") },
-                            onClick = {
-                                showMenu = false
-                                onPublishClick()
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Default.Publish,
-                                    contentDescription = null
-                                )
-                            }
-                        )
-                    }
-
-                    DropdownMenuItem(
-                        text = { Text("Eliminar") },
-                        onClick = {
-                            showMenu = false
-                            showDeleteDialog = true
-                        },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.error
-                            )
-                        }
-                    )
-                }
-            }
+            )
         }
     }
 
     if (showDeleteDialog) {
-        AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
-            title = {
-                Text(
-                    "Eliminar Capítulo",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-            },
-            text = {
-                Text(
-                    "¿Estás seguro de que deseas eliminar este capítulo? Esta acción no se puede deshacer.",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showDeleteDialog = false
-                        onDeleteClick()
-                    },
-                    colors = ButtonDefaults.textButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error
-                    )
-                ) {
-                    Text("Eliminar")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("Cancelar")
-                }
+        DeleteChapterDialog(
+            onDismiss = { showDeleteDialog = false },
+            onConfirm = {
+                showDeleteDialog = false
+                onDeleteClick()
             }
         )
     }
+}
+
+@Composable
+private fun ChapterInfo(
+    chapter: Chapter,
+    chapterNumber: Int,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        ChapterHeader(
+            chapterNumber = chapterNumber,
+            isPublished = chapter.isPublished
+        )
+
+        Text(
+            text = chapter.title,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
+        )
+
+        chapter.updatedAt?.let { updatedAt ->
+            Text(
+                text = "Actualizado: $updatedAt",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+            )
+        }
+    }
+}
+
+@Composable
+private fun ChapterHeader(
+    chapterNumber: Int,
+    isPublished: Boolean
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = "Capítulo $chapterNumber",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.primary
+        )
+
+        if (isPublished) {
+            Badge(
+                containerColor = MaterialTheme.colorScheme.primary
+            ) {
+                Text(
+                    "Publicado",
+                    style = MaterialTheme.typography.labelSmall
+                )
+            }
+        } else {
+            Badge(
+                containerColor = MaterialTheme.colorScheme.tertiary
+            ) {
+                Text(
+                    "Borrador",
+                    style = MaterialTheme.typography.labelSmall
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ChapterOptionsMenu(
+    isPublished: Boolean,
+    showMenu: Boolean,
+    onMenuToggle: (Boolean) -> Unit,
+    onPublishClick: () -> Unit,
+    onDeleteClick: () -> Unit
+) {
+    Box {
+        IconButton(onClick = { onMenuToggle(true) }) {
+            Icon(
+                imageVector = Icons.Default.MoreVert,
+                contentDescription = "Opciones"
+            )
+        }
+
+        DropdownMenu(
+            expanded = showMenu,
+            onDismissRequest = { onMenuToggle(false) }
+        ) {
+            if (!isPublished) {
+                DropdownMenuItem(
+                    text = { Text("Publicar") },
+                    onClick = onPublishClick,
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Publish,
+                            contentDescription = null
+                        )
+                    }
+                )
+            }
+
+            DropdownMenuItem(
+                text = { Text("Eliminar") },
+                onClick = onDeleteClick,
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                }
+            )
+        }
+    }
+}
+
+@Composable
+private fun DeleteChapterDialog(
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                "Eliminar Capítulo",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Text(
+                "¿Estás seguro de que deseas eliminar este capítulo? Esta acción no se puede deshacer.",
+                style = MaterialTheme.typography.bodyMedium
+            )
+        },
+        confirmButton = {
+            TextButton(
+                onClick = onConfirm,
+                colors = ButtonDefaults.textButtonColors(
+                    contentColor = MaterialTheme.colorScheme.error
+                )
+            ) {
+                Text("Eliminar")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar")
+            }
+        }
+    )
 }
 
 @Composable

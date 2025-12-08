@@ -28,6 +28,10 @@ class ProfileViewModel @Inject constructor(
     private val _state = MutableStateFlow(ProfileUiState())
     val state: StateFlow<ProfileUiState> = _state.asStateFlow()
 
+    private companion object {
+        const val USER_ID_NOT_FOUND_ERROR = "Error: No se encontró ID de usuario"
+    }
+
     init {
         loadUserBasicInfo()
         onEvent(ProfileEvent.LoadProfile)
@@ -67,7 +71,7 @@ class ProfileViewModel @Inject constructor(
             _state.update {
                 it.copy(
                     isLoading = false,
-                    userMessage = "Error: No se encontró ID de usuario"
+                    userMessage = USER_ID_NOT_FOUND_ERROR
                 )
             }
             return@launch
@@ -102,7 +106,7 @@ class ProfileViewModel @Inject constructor(
             _state.update {
                 it.copy(
                     isLoadingSessions = false,
-                    userMessage = "Error: No se encontró ID de usuario"
+                    userMessage = "USER_ID_NOT_FOUND_ERROR"
                 )
             }
             return@launch
@@ -150,7 +154,7 @@ class ProfileViewModel @Inject constructor(
             _state.update {
                 it.copy(
                     isLoading = false,
-                    userMessage = "Error: No se encontró ID de usuario"
+                    userMessage = "USER_ID_NOT_FOUND_ERROR"
                 )
             }
             return@launch

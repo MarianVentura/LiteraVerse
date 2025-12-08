@@ -73,19 +73,12 @@ fun LibraryScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(uiState.errorMessage) {
-        uiState.errorMessage?.let { message ->
-            snackbarHostState.showSnackbar(message)
-            viewModel.onEvent(LibraryEvent.UserMessageShown)
-        }
-    }
-
-    LaunchedEffect(uiState.successMessage) {
-        uiState.successMessage?.let { message ->
-            snackbarHostState.showSnackbar(message)
-            viewModel.onEvent(LibraryEvent.UserMessageShown)
-        }
-    }
+    HandleSnackbarMessages(
+        errorMessage = uiState.errorMessage,
+        successMessage = uiState.successMessage,
+        snackbarHostState = snackbarHostState,
+        onMessageShown = { viewModel.onEvent(LibraryEvent.UserMessageShown) }
+    )
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -101,212 +94,320 @@ fun LibraryScreen(
             )
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            Text(
-                text = "Mi Biblioteca",
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.padding(16.dp)
-            )
+        LibraryContent(
+            uiState = uiState,
+            onEvent = viewModel::onEvent,
+            onStoryClick = onStoryClick,
+            onNavigateToHome = onNavigateToHome,
+            modifier = Modifier.padding(paddingValues)
+        )
+    }
 
-            TabRow(
-                selectedTabIndex = uiState.selectedTab.ordinal,
-                containerColor = MaterialTheme.colorScheme.surface
-            ) {
-                Tab(
-                    selected = uiState.selectedTab == LibraryTab.FAVORITES,
-                    onClick = { viewModel.onEvent(LibraryEvent.SelectTab(LibraryTab.FAVORITES)) },
-                    text = {
-                        Text(
-                            text = "Favoritos",
-                            style = MaterialTheme.typography.labelLarge
-                        )
-                    }
-                )
-                Tab(
-                    selected = uiState.selectedTab == LibraryTab.READING,
-                    onClick = { viewModel.onEvent(LibraryEvent.SelectTab(LibraryTab.READING)) },
-                    text = {
-                        Text(
-                            text = "Leyendo",
-                            style = MaterialTheme.typography.labelLarge
-                        )
-                    }
-                )
-                Tab(
-                    selected = uiState.selectedTab == LibraryTab.COMPLETED,
-                    onClick = { viewModel.onEvent(LibraryEvent.SelectTab(LibraryTab.COMPLETED)) },
-                    text = {
-                        Text(
-                            text = "Finalizadas",
-                            style = MaterialTheme.typography.labelLarge
-                        )
-                    }
-                )
-            }
+    LibraryDialogs(
+        uiState = uiState,
+        onEvent = viewModel::onEvent
+    )
+}
 
-            if (uiState.isLoading) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
-            } else {
-                val currentList = when (uiState.selectedTab) {
-                    LibraryTab.FAVORITES -> uiState.favorites
-                    LibraryTab.READING -> uiState.reading
-                    LibraryTab.COMPLETED -> uiState.completed
-                }
-
-                if (currentList.isEmpty()) {
-                    EmptyLibraryState(
-                        tab = uiState.selectedTab,
-                        onExploreClick = onNavigateToHome
-                    )
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                        contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp)
-                    ) {
-                        items(currentList) { storyWithProgress ->
-                            StoryLibraryCard(
-                                storyWithProgress = storyWithProgress,
-                                onClick = {
-                                    onStoryClick(
-                                        storyWithProgress.story.storyId,
-                                        storyWithProgress.lastReadChapterId
-                                    )
-                                },
-                                onLongClick = {
-                                    viewModel.onEvent(
-                                        LibraryEvent.ShowContextMenu(
-                                            storyId = storyWithProgress.story.storyId,
-                                            currentStates = LibraryStates(
-                                                isFavorite = storyWithProgress.isFavorite,
-                                                isReading = storyWithProgress.isReading,
-                                                isCompleted = storyWithProgress.isCompleted
-                                            )
-                                        )
-                                    )
-                                },
-                                onMenuClick = {
-                                    viewModel.onEvent(
-                                        LibraryEvent.ShowLibraryMenu(
-                                            storyId = storyWithProgress.story.storyId,
-                                            currentStates = LibraryStates(
-                                                isFavorite = storyWithProgress.isFavorite,
-                                                isReading = storyWithProgress.isReading,
-                                                isCompleted = storyWithProgress.isCompleted
-                                            )
-                                        )
-                                    )
-                                }
-                            )
-                        }
-                    }
-                }
-            }
+@Composable
+private fun HandleSnackbarMessages(
+    errorMessage: String?,
+    successMessage: String?,
+    snackbarHostState: SnackbarHostState,
+    onMessageShown: () -> Unit
+) {
+    LaunchedEffect(errorMessage) {
+        errorMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            onMessageShown()
         }
     }
 
+    LaunchedEffect(successMessage) {
+        successMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            onMessageShown()
+        }
+    }
+}
+
+@Composable
+private fun LibraryContent(
+    uiState: LibraryUiState,
+    onEvent: (LibraryEvent) -> Unit,
+    onStoryClick: (Int, Int?) -> Unit,
+    onNavigateToHome: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.fillMaxSize()
+    ) {
+        Text(
+            text = "Mi Biblioteca",
+            style = MaterialTheme.typography.headlineMedium,
+            color = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier.padding(16.dp)
+        )
+
+        LibraryTabs(
+            selectedTab = uiState.selectedTab,
+            onTabSelected = { onEvent(LibraryEvent.SelectTab(it)) }
+        )
+
+        LibraryTabContent(
+            uiState = uiState,
+            onEvent = onEvent,
+            onStoryClick = onStoryClick,
+            onNavigateToHome = onNavigateToHome
+        )
+    }
+}
+
+@Composable
+private fun LibraryTabs(
+    selectedTab: LibraryTab,
+    onTabSelected: (LibraryTab) -> Unit
+) {
+    TabRow(
+        selectedTabIndex = selectedTab.ordinal,
+        containerColor = MaterialTheme.colorScheme.surface
+    ) {
+        Tab(
+            selected = selectedTab == LibraryTab.FAVORITES,
+            onClick = { onTabSelected(LibraryTab.FAVORITES) },
+            text = {
+                Text(
+                    text = "Favoritos",
+                    style = MaterialTheme.typography.labelLarge
+                )
+            }
+        )
+        Tab(
+            selected = selectedTab == LibraryTab.READING,
+            onClick = { onTabSelected(LibraryTab.READING) },
+            text = {
+                Text(
+                    text = "Leyendo",
+                    style = MaterialTheme.typography.labelLarge
+                )
+            }
+        )
+        Tab(
+            selected = selectedTab == LibraryTab.COMPLETED,
+            onClick = { onTabSelected(LibraryTab.COMPLETED) },
+            text = {
+                Text(
+                    text = "Finalizadas",
+                    style = MaterialTheme.typography.labelLarge
+                )
+            }
+        )
+    }
+}
+
+@Composable
+private fun LibraryTabContent(
+    uiState: LibraryUiState,
+    onEvent: (LibraryEvent) -> Unit,
+    onStoryClick: (Int, Int?) -> Unit,
+    onNavigateToHome: () -> Unit
+) {
+    when {
+        uiState.isLoading -> LoadingState()
+        else -> {
+            val currentList = getCurrentList(uiState)
+
+            if (currentList.isEmpty()) {
+                EmptyLibraryState(
+                    tab = uiState.selectedTab,
+                    onExploreClick = onNavigateToHome
+                )
+            } else {
+                StoriesListContent(
+                    stories = currentList,
+                    onStoryClick = onStoryClick,
+                    onEvent = onEvent
+                )
+            }
+        }
+    }
+}
+
+private fun getCurrentList(uiState: LibraryUiState): List<StoryWithProgress> {
+    return when (uiState.selectedTab) {
+        LibraryTab.FAVORITES -> uiState.favorites
+        LibraryTab.READING -> uiState.reading
+        LibraryTab.COMPLETED -> uiState.completed
+    }
+}
+
+@Composable
+private fun LoadingState() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator()
+    }
+}
+
+@Composable
+private fun StoriesListContent(
+    stories: List<StoryWithProgress>,
+    onStoryClick: (Int, Int?) -> Unit,
+    onEvent: (LibraryEvent) -> Unit
+) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp)
+    ) {
+        items(stories) { storyWithProgress ->
+            StoryLibraryCard(
+                storyWithProgress = storyWithProgress,
+                onClick = {
+                    onStoryClick(
+                        storyWithProgress.story.storyId,
+                        storyWithProgress.lastReadChapterId
+                    )
+                },
+                onLongClick = {
+                    onEvent(
+                        LibraryEvent.ShowContextMenu(
+                            storyId = storyWithProgress.story.storyId,
+                            currentStates = LibraryStates(
+                                isFavorite = storyWithProgress.isFavorite,
+                                isReading = storyWithProgress.isReading,
+                                isCompleted = storyWithProgress.isCompleted
+                            )
+                        )
+                    )
+                },
+                onMenuClick = {
+                    onEvent(
+                        LibraryEvent.ShowLibraryMenu(
+                            storyId = storyWithProgress.story.storyId,
+                            currentStates = LibraryStates(
+                                isFavorite = storyWithProgress.isFavorite,
+                                isReading = storyWithProgress.isReading,
+                                isCompleted = storyWithProgress.isCompleted
+                            )
+                        )
+                    )
+                }
+            )
+        }
+    }
+}
+
+@Composable
+private fun LibraryDialogs(
+    uiState: LibraryUiState,
+    onEvent: (LibraryEvent) -> Unit
+) {
     uiState.selectedStoryStates?.let { selectedStates ->
         if (uiState.showLibraryMenu) {
             AddToLibraryMenu(
                 currentStates = selectedStates,
-                onDismiss = { viewModel.onEvent(LibraryEvent.DismissLibraryMenu) },
+                onDismiss = { onEvent(LibraryEvent.DismissLibraryMenu) },
                 onSave = { states ->
                     uiState.selectedStoryId?.let { storyId ->
-                        viewModel.onEvent(LibraryEvent.UpdateLibraryStates(storyId, states))
+                        onEvent(LibraryEvent.UpdateLibraryStates(storyId, states))
                     }
                 }
             )
         }
-    }
 
-    uiState.selectedStoryStates?.let { selectedStates ->
         if (uiState.showContextMenu) {
-            AlertDialog(
-                onDismissRequest = { viewModel.onEvent(LibraryEvent.DismissContextMenu) },
-                title = {
-                    Text(
-                        text = "Opciones",
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                },
-                text = {
-                    Column {
-                        TextButton(
-                            onClick = {
-                                uiState.selectedStoryId?.let { storyId ->
-                                    viewModel.onEvent(
-                                        LibraryEvent.ShowLibraryMenu(
-                                            storyId = storyId,
-                                            currentStates = selectedStates
-                                        )
-                                    )
-                                }
-                                viewModel.onEvent(LibraryEvent.DismissContextMenu)
-                            },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.Start,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Edit,
-                                    contentDescription = null
-                                )
-                                Spacer(modifier = Modifier.width(16.dp))
-                                Text("Editar estados")
-                            }
-                        }
-
-                        TextButton(
-                            onClick = {
-                                uiState.selectedStoryId?.let { storyId ->
-                                    viewModel.onEvent(LibraryEvent.RemoveFromLibrary(storyId))
-                                }
-                                viewModel.onEvent(LibraryEvent.DismissContextMenu)
-                            },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.Start,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Delete,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.error
-                                )
-                                Spacer(modifier = Modifier.width(16.dp))
-                                Text(
-                                    "Eliminar de biblioteca",
-                                    color = MaterialTheme.colorScheme.error
-                                )
-                            }
-                        }
+            ContextMenuDialog(
+                selectedStates = selectedStates,
+                onDismiss = { onEvent(LibraryEvent.DismissContextMenu) },
+                onEditStates = {
+                    uiState.selectedStoryId?.let { storyId ->
+                        onEvent(
+                            LibraryEvent.ShowLibraryMenu(
+                                storyId = storyId,
+                                currentStates = selectedStates
+                            )
+                        )
                     }
+                    onEvent(LibraryEvent.DismissContextMenu)
                 },
-                confirmButton = {
-                    TextButton(
-                        onClick = { viewModel.onEvent(LibraryEvent.DismissContextMenu) }
-                    ) {
-                        Text("Cancelar")
+                onRemove = {
+                    uiState.selectedStoryId?.let { storyId ->
+                        onEvent(LibraryEvent.RemoveFromLibrary(storyId))
                     }
+                    onEvent(LibraryEvent.DismissContextMenu)
                 }
             )
         }
     }
+}
+
+@Composable
+private fun ContextMenuDialog(
+    selectedStates: LibraryStates,
+    onDismiss: () -> Unit,
+    onEditStates: () -> Unit,
+    onRemove: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "Opciones",
+                style = MaterialTheme.typography.titleLarge
+            )
+        },
+        text = {
+            Column {
+                TextButton(
+                    onClick = onEditStates,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = null
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Text("Editar estados")
+                    }
+                }
+
+                TextButton(
+                    onClick = onRemove,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Text(
+                            "Eliminar de biblioteca",
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar")
+            }
+        }
+    )
 }
 
 @Composable
@@ -396,31 +497,10 @@ fun StoryLibraryCard(
             Column(
                 modifier = Modifier.weight(1f)
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Top
-                ) {
-                    Text(
-                        text = storyWithProgress.story.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    IconButton(
-                        onClick = onMenuClick,
-                        modifier = Modifier.size(24.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.MoreVert,
-                            contentDescription = "Opciones",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
+                StoryCardHeader(
+                    title = storyWithProgress.story.title,
+                    onMenuClick = onMenuClick
+                )
 
                 Spacer(modifier = Modifier.height(4.dp))
 
@@ -432,40 +512,11 @@ fun StoryLibraryCard(
 
                 if (storyWithProgress.isReading && storyWithProgress.progress != null) {
                     Spacer(modifier = Modifier.height(12.dp))
-
-                    LinearProgressIndicator(
-                        progress = { storyWithProgress.progressPercentage / 100f },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(6.dp)
-                            .clip(RoundedCornerShape(3.dp)),
-                        color = MaterialTheme.colorScheme.primary,
-                        trackColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
-
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = "Cap ${storyWithProgress.progress.chapterId} • ${storyWithProgress.progressPercentage}%",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-
-                        Text(
-                            text = storyWithProgress.lastReadTimeAgo,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                    ReadingProgressSection(storyWithProgress = storyWithProgress)
                 }
 
                 if (storyWithProgress.isCompleted) {
                     Spacer(modifier = Modifier.height(8.dp))
-
                     Text(
                         text = "✓ Completada",
                         style = MaterialTheme.typography.bodySmall,
@@ -474,6 +525,70 @@ fun StoryLibraryCard(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun StoryCardHeader(
+    title: String,
+    onMenuClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.Top
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f)
+        )
+
+        IconButton(
+            onClick = onMenuClick,
+            modifier = Modifier.size(24.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.MoreVert,
+                contentDescription = "Opciones",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+private fun ReadingProgressSection(storyWithProgress: StoryWithProgress) {
+    LinearProgressIndicator(
+        progress = { storyWithProgress.progressPercentage / 100f },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(6.dp)
+            .clip(RoundedCornerShape(3.dp)),
+        color = MaterialTheme.colorScheme.primary,
+        trackColor = MaterialTheme.colorScheme.surfaceVariant
+    )
+
+    Spacer(modifier = Modifier.height(4.dp))
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = "Cap ${storyWithProgress.progress?.chapterId} • ${storyWithProgress.progressPercentage}%",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Text(
+            text = storyWithProgress.lastReadTimeAgo,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
