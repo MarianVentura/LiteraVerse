@@ -16,6 +16,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -613,5 +614,46 @@ fun NotesTab() {
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
             )
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun StoryChaptersTopBarPreview() {
+    MaterialTheme {
+        StoryChaptersTopBar(onNavigateBack = {})
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ChapterListItemPreview() {
+    MaterialTheme {
+        ChapterListItem(
+            chapter = Chapter(
+                chapterId = 1,
+                storyId = 1,
+                title = "El Comienzo",
+                content = "Contenido del capítulo...",
+                chapterNumber = 1,
+                isDraft = false,
+                isPublished = true,
+                createdAt = String(),
+                updatedAt = String(),
+                publishedAt = "2024-01-15T10:00:00"
+            ),
+            chapterNumber = 1,
+            onChapterClick = {},
+            onDeleteClick = {},
+            onPublishClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun NotesTabPreview() {
+    MaterialTheme {
+        NotesTab()
     }
 }
