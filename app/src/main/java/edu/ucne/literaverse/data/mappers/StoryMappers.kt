@@ -19,5 +19,5 @@ fun StoryResponse.toDomain(): Story = Story(
         isDraft -> "Borrador"
         else -> "Desconocido"
     },
-    synopsis = TODO(),
+
 )

@@ -550,7 +550,7 @@ fun SearchScreenPreview() {
                         reads = 25000,
                         chapters = 35,
                         status = "Publicado",
-                        synopsis = "Un joven descubre su destino en un mundo mágico."
+
                     ),
                     Story(
                         storyId = 2,
@@ -562,7 +562,7 @@ fun SearchScreenPreview() {
                         reads = 18000,
                         chapters = 22,
                         status = "Publicado",
-                        synopsis = "Dos almas se encuentran en la ciudad."
+
                     )
                 ),
                 selectedGenre = null,
@@ -646,7 +646,7 @@ fun StoryCardPreview() {
                 reads = 25000,
                 chapters = 35,
                 status = "Publicado",
-                synopsis = "Un joven descubre su destino."
+
             ),
             onClick = {}
         )

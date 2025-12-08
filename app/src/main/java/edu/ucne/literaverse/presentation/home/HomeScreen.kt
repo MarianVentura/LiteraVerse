@@ -611,7 +611,7 @@ fun HomeScreenPreview() {
                     reads = 15000,
                     chapters = 25,
                     status = "Completada",
-                    synopsis = "Una detective investiga un caso que la lleva a enfrentar su propio pasado oscuro."
+
                 ),
                 Story(
                     storyId = 2,
@@ -623,7 +623,7 @@ fun HomeScreenPreview() {
                     reads = 22000,
                     chapters = 18,
                     status = "En progreso",
-                    synopsis = "Dos almas perdidas se encuentran en la ciudad más inesperada."
+
                 )
             ),
             popular = listOf(
@@ -637,7 +637,7 @@ fun HomeScreenPreview() {
                     reads = 45000,
                     chapters = 40,
                     status = "En progreso",
-                    synopsis = "Un joven descubre que es el heredero de un reino mágico olvidado."
+
                 )
             ),
             recent = listOf(
@@ -651,7 +651,7 @@ fun HomeScreenPreview() {
                     reads = 8000,
                     chapters = 12,
                     status = "En progreso",
-                    synopsis = "Una barista y un astrónomo se conocen en un pequeño café."
+
                 )
             ),
             genres = emptyList(),

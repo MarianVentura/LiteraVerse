@@ -10,5 +10,5 @@ data class Story(
     val reads: Int,
     val chapters: Int,
     val status: String,
-    val synopsis: String
+
 )
