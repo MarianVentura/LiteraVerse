@@ -21,6 +21,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -531,4 +532,237 @@ private val sortOptions = listOf(
     SortOption("Más leídos", SortCriteria.MOST_READ)
 )
 
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun SearchScreenPreview() {
+    MaterialTheme {
+        SearchScreenContent(
+            state = SearchUiState(
+                searchQuery = "",
+                stories = listOf(
+                    Story(
+                        storyId = 1,
+                        title = "El Reino de las Sombras",
+                        author = "María García",
+                        description = "Una épica historia de fantasía",
+                        coverImageUrl = null,
+                        genres = listOf("Fantasía", "Aventura"),
+                        reads = 25000,
+                        chapters = 35,
+                        status = "Publicado",
+                        synopsis = "Un joven descubre su destino en un mundo mágico."
+                    ),
+                    Story(
+                        storyId = 2,
+                        title = "Amor en Tiempos Modernos",
+                        author = "Carlos Ruiz",
+                        description = "Romance contemporáneo",
+                        coverImageUrl = null,
+                        genres = listOf("Romance"),
+                        reads = 18000,
+                        chapters = 22,
+                        status = "Publicado",
+                        synopsis = "Dos almas se encuentran en la ciudad."
+                    )
+                ),
+                selectedGenre = null,
+                selectedStatus = null,
+                selectedSort = SortCriteria.RELEVANCE,
+                showFilters = false,
+                isLoading = false,
+                hasSearched = false,
+                userMessage = null
+            ),
+            onEvent = {},
+            onStoryClick = {}
+        )
+    }
+}
 
+@Preview(showBackground = true)
+@Composable
+fun SearchScreenWithFiltersPreview() {
+    MaterialTheme {
+        SearchScreenContent(
+            state = SearchUiState(
+                searchQuery = "fantasía",
+                stories = emptyList(),
+                selectedGenre = "Fantasía",
+                selectedStatus = null,
+                selectedSort = SortCriteria.POPULARITY,
+                showFilters = true,
+                isLoading = false,
+                hasSearched = true,
+                userMessage = null
+            ),
+            onEvent = {},
+            onStoryClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SearchBarPreview() {
+    MaterialTheme {
+        SearchBar(
+            query = "búsqueda de prueba",
+            onQueryChange = {},
+            onSearch = {},
+            onToggleFilters = {},
+            showFilters = false
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun FiltersSectionPreview() {
+    MaterialTheme {
+        FiltersSection(
+            selectedGenre = "Fantasía",
+            selectedStatus = "published",
+            selectedSort = SortCriteria.POPULARITY,
+            onGenreSelect = {},
+            onStatusSelect = {},
+            onSortChange = {},
+            onClearFilters = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun StoryCardPreview() {
+    MaterialTheme {
+        StoryCard(
+            story = Story(
+                storyId = 1,
+                title = "El Reino de las Sombras Eternas",
+                author = "María García López",
+                description = "Una épica historia de fantasía",
+                coverImageUrl = null,
+                genres = listOf("Fantasía", "Aventura"),
+                reads = 25000,
+                chapters = 35,
+                status = "Publicado",
+                synopsis = "Un joven descubre su destino."
+            ),
+            onClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun EmptySearchResultsPreview() {
+    MaterialTheme {
+        EmptySearchResults()
+    }
+}
+
+@Composable
+private fun SearchScreenContent(
+    state: SearchUiState,
+    onEvent: (SearchEvent) -> Unit,
+    onStoryClick: (Int) -> Unit
+) {
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(state.userMessage) {
+        state.userMessage?.let { message ->
+            snackbarHostState.showSnackbar(message)
+            onEvent(SearchEvent.UserMessageShown)
+        }
+    }
+
+    Scaffold(
+        bottomBar = {
+            UserMenuBottomBar(
+                currentScreen = BottomNavScreen.SEARCH,
+                onNavigateToHome = {},
+                onNavigateToBuscar = {},
+                onNavigateToLibrary = {},
+                onNavigateToWrite = {},
+                onNavigateToPerfil = {},
+                onLogout = {}
+            )
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = MaterialTheme.colorScheme.background
+    ) { padding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            item {
+                Text(
+                    text = "Buscar",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            item {
+                SearchBar(
+                    query = state.searchQuery,
+                    onQueryChange = { onEvent(SearchEvent.OnQueryChange(it)) },
+                    onSearch = { onEvent(SearchEvent.OnSearch) },
+                    onToggleFilters = { onEvent(SearchEvent.ToggleFilters) },
+                    showFilters = state.showFilters
+                )
+            }
+
+            if (state.showFilters) {
+                item {
+                    FiltersSection(
+                        selectedGenre = state.selectedGenre,
+                        selectedStatus = state.selectedStatus,
+                        selectedSort = state.selectedSort,
+                        onGenreSelect = { onEvent(SearchEvent.OnGenreSelect(it)) },
+                        onStatusSelect = { onEvent(SearchEvent.OnStatusSelect(it)) },
+                        onSortChange = { onEvent(SearchEvent.OnSortChange(it)) },
+                        onClearFilters = { onEvent(SearchEvent.ClearFilters) }
+                    )
+                }
+            }
+
+            if (state.isLoading) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+            } else if (state.stories.isEmpty() && state.hasSearched) {
+                item {
+                    EmptySearchResults()
+                }
+            } else {
+                if (!state.hasSearched && state.stories.isNotEmpty()) {
+                    item {
+                        Text(
+                            text = "Historias Populares",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+
+                items(state.stories) { story ->
+                    StoryCard(
+                        story = story,
+                        onClick = { onStoryClick(story.storyId) }
+                    )
+                }
+            }
+        }
+    }
+}
