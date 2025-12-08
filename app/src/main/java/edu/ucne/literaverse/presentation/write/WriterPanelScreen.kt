@@ -17,6 +17,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -314,5 +315,56 @@ fun WriterOptionCard(
                 tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
             )
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun WriterPanelTopBarPreview() {
+    MaterialTheme {
+        WriterPanelTopBar(userName = "usuario_escritor")
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ContinueWritingCardPreview() {
+    MaterialTheme {
+        ContinueWritingCard(
+            story = StoryDetail(
+                storyId = 1,
+                userId = 1,
+                userName = "Usuario",
+                title = "Mi Historia en Progreso",
+                synopsis = "Una historia emocionante...",
+                coverImageUrl = null,
+                genre = "Romance",
+                tags = "amor, drama",
+                isDraft = true,
+                isPublished = false,
+                createdAt = "2024-01-01",
+                publishedAt = null,
+                updatedAt = "2024-12-01",
+                viewCount = 0,
+                chapters = emptyList()
+            ),
+            publishedParts = 5,
+            draftParts = 3,
+            onStoryClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun WriterOptionsSectionPreview() {
+    MaterialTheme {
+        WriterOptionsSection(
+            myStoriesCount = 15,
+            draftsCount = 5,
+            publishedCount = 10,
+            onMyStoriesClick = {},
+            onCreateStoryClick = {}
+        )
     }
 }
