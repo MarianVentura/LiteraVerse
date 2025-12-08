@@ -18,5 +18,6 @@ fun StoryResponse.toDomain(): Story = Story(
         isPublished -> "Publicado"
         isDraft -> "Borrador"
         else -> "Desconocido"
-    }
+    },
+    synopsis = TODO(),
 )
