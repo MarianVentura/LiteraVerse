@@ -22,6 +22,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -589,6 +590,179 @@ fun GenreStoryCard(story: Story, onStoryClick: (Int) -> Unit) {
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun HomeScreenPreview() {
+    HomeScreenContent(
+        state = HomeUiState(
+            featured = listOf(
+                Story(
+                    storyId = 1,
+                    title = "La Sombra del Pasado",
+                    author = "Ana García",
+                    description = "Una historia de misterio y suspense",
+                    coverImageUrl = null,
+                    genres = listOf("Misterio", "Thriller"),
+                    reads = 15000,
+                    chapters = 25,
+                    status = "Completada",
+                    synopsis = "Una detective investiga un caso que la lleva a enfrentar su propio pasado oscuro."
+                ),
+                Story(
+                    storyId = 2,
+                    title = "Ecos del Corazón",
+                    author = "Carlos Ruiz",
+                    description = "Un romance contemporáneo conmovedor",
+                    coverImageUrl = null,
+                    genres = listOf("Romance"),
+                    reads = 22000,
+                    chapters = 18,
+                    status = "En progreso",
+                    synopsis = "Dos almas perdidas se encuentran en la ciudad más inesperada."
+                )
+            ),
+            popular = listOf(
+                Story(
+                    storyId = 3,
+                    title = "El Reino Olvidado",
+                    author = "María López",
+                    description = "Fantasía épica llena de aventuras",
+                    coverImageUrl = null,
+                    genres = listOf("Fantasía", "Aventura"),
+                    reads = 45000,
+                    chapters = 40,
+                    status = "En progreso",
+                    synopsis = "Un joven descubre que es el heredero de un reino mágico olvidado."
+                )
+            ),
+            recent = listOf(
+                Story(
+                    storyId = 4,
+                    title = "Café con Estrellas",
+                    author = "Luis Martínez",
+                    description = "Romance ligero y encantador",
+                    coverImageUrl = null,
+                    genres = listOf("Romance", "Drama"),
+                    reads = 8000,
+                    chapters = 12,
+                    status = "En progreso",
+                    synopsis = "Una barista y un astrónomo se conocen en un pequeño café."
+                )
+            ),
+            genres = emptyList(),
+            selectedGenre = null,
+            storiesByGenre = emptyList(),
+            isLoading = false,
+            error = null,
+            isLoggingOut = false
+        ),
+        onEvent = {},
+        onStoryClick = {}
+    )
+}
+
+@Composable
+private fun HomeScreenContent(
+    state: HomeUiState,
+    onEvent: (HomeEvent) -> Unit,
+    onStoryClick: (Int) -> Unit
+) {
+    Scaffold(
+        topBar = {
+            HomeTopBar()
+        },
+        bottomBar = {
+            UserMenuBottomBar(
+                currentScreen = BottomNavScreen.HOME,
+                onNavigateToHome = {},
+                onNavigateToBuscar = {},
+                onNavigateToLibrary = {},
+                onNavigateToWrite = {},
+                onNavigateToPerfil = {},
+                onLogout = {}
+            )
+        }
+    ) { padding ->
+        if (state.isLoading && state.featured.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentPadding = PaddingValues(bottom = 16.dp)
+            ) {
+                item {
+                    FeaturedSection(
+                        stories = state.featured,
+                        onStoryClick = onStoryClick
+                    )
+                }
+
+                item {
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
+
+                item {
+                    GenresSection(
+                        genres = state.genres.map { it.name },
+                        selectedGenre = state.selectedGenre,
+                        onGenreClick = { onEvent(HomeEvent.OnGenreSelected(it)) }
+                    )
+                }
+
+                if (state.selectedGenre != null && state.storiesByGenre.isNotEmpty()) {
+                    item {
+                        Spacer(modifier = Modifier.height(24.dp))
+                        StoriesByGenreSection(
+                            genre = state.selectedGenre,
+                            stories = state.storiesByGenre,
+                            onStoryClick = onStoryClick
+                        )
+                    }
+                }
+
+                item {
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
+
+                item {
+                    PopularSection(
+                        stories = state.popular,
+                        onStoryClick = onStoryClick
+                    )
+                }
+
+                item {
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
+
+                item {
+                    NewStoriesSection(
+                        stories = state.recent,
+                        onStoryClick = onStoryClick
+                    )
+                }
+            }
+        }
+
+        state.error?.let { error ->
+            Snackbar(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(error)
             }
         }
     }
