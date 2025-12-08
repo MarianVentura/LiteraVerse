@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -475,4 +476,61 @@ private fun getEmptyStateMessage(filter: StoryFilter) = when (filter) {
     StoryFilter.ALL -> "Comienza a escribir tu primera historia"
     StoryFilter.DRAFTS -> "Tus borradores aparecerán aquí"
     StoryFilter.PUBLISHED -> "Publica una historia para verla aquí"
+  
+@Preview(showBackground = true)
+@Composable
+private fun MyStoriesTopBarPreview() {
+    MaterialTheme {
+        MyStoriesTopBar(onNavigateBack = {})
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun MyStoriesFilterChipsPreview() {
+    MaterialTheme {
+        MyStoriesFilterChips(
+            selectedFilter = StoryFilter.ALL,
+            onFilterChanged = {},
+            allCount = 15,
+            draftsCount = 5,
+            publishedCount = 10
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun StoryListItemPreview() {
+    MaterialTheme {
+        StoryListItem(
+            story = StoryDetail(
+                storyId = 1,
+                userId = 1,
+                userName = "Usuario",
+                title = "Mi Primera Historia",
+                synopsis = "Esta es una historia increíble sobre...",
+                coverImageUrl = null,
+                genre = "Fantasía",
+                tags = "aventura, magia",
+                isDraft = false,
+                isPublished = true,
+                createdAt = "2024-01-01",
+                publishedAt = "2024-01-15",
+                updatedAt = "2024-01-20",
+                viewCount = 250,
+                chapters = emptyList()
+            ),
+            onStoryClick = {},
+            onDeleteClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun EmptyStoriesStatePreview() {
+    MaterialTheme {
+        EmptyStoriesState(filter = StoryFilter.DRAFTS)
+    }
 }

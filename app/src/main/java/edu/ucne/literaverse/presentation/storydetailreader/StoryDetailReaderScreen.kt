@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -661,5 +662,36 @@ fun ChapterItem(
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+    }
+}
+
+
+private fun formatNumber(number: Int): String {
+    return when {
+        number >= 1_000_000 -> "${number / 1_000_000}M"
+        number >= 1_000 -> "${number / 1_000}k"
+        else -> number.toString()
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ChapterItemPreview() {
+    MaterialTheme {
+        ChapterItem(
+            chapter = Chapter(
+                chapterId = 1,
+                storyId = 1,
+                title = "El Comienzo",
+                content = "Contenido...",
+                chapterNumber = 1,
+                isDraft = false,
+                isPublished = true,
+                createdAt = String(),
+                updatedAt = String(),
+                publishedAt = "2024-01-15T10:00:00"
+            ),
+            onClick = {}
+        )
     }
 }

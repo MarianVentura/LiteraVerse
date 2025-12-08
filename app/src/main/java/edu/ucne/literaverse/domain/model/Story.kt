@@ -9,5 +9,6 @@ data class Story(
     val genres: List<String>,
     val reads: Int,
     val chapters: Int,
-    val status: String
+    val status: String,
+
 )

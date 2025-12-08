@@ -40,6 +40,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun ChapterReaderScreen(
@@ -261,5 +264,78 @@ fun ChapterReaderContent(
         )
 
         Spacer(modifier = Modifier.height(48.dp))
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+private fun ChapterReaderScreenPreview() {
+    MaterialTheme {
+        Scaffold(
+            topBar = {
+                ChapterReaderTopBar(
+                    title = "Capítulo 1: El Comienzo",
+                    currentChapter = 1,
+                    totalChapters = 12,
+                    onNavigateBack = {}
+                )
+            },
+            bottomBar = {
+                ChapterReaderBottomBar(
+                    hasPrevious = true,
+                    hasNext = true,
+                    onPreviousClick = {},
+                    onNextClick = {}
+                )
+            }
+        ) { padding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .verticalScroll(rememberScrollState())
+                    .padding(24.dp)
+            ) {
+                Text(
+                    text = "El Comienzo",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Text(
+                    text = "En un reino lejano, donde las montañas tocaban el cielo y los ríos cantaban melodías ancestrales, vivía una joven llamada Aria...",
+                    style = MaterialTheme.typography.bodyLarge,
+                    lineHeight = MaterialTheme.typography.bodyLarge.lineHeight.times(1.5f)
+                )
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ChapterReaderTopBarPreview() {
+    MaterialTheme {
+        ChapterReaderTopBar(
+            title = "Capítulo 1: El Comienzo",
+            currentChapter = 1,
+            totalChapters = 12,
+            onNavigateBack = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ChapterReaderBottomBarPreview() {
+    MaterialTheme {
+        ChapterReaderBottomBar(
+            hasPrevious = true,
+            hasNext = true,
+            onPreviousClick = {},
+            onNextClick = {}
+        )
     }
 }

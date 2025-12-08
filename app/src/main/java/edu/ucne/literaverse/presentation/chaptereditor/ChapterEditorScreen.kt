@@ -9,6 +9,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -282,4 +283,134 @@ fun ChapterEditorTopBar(
             containerColor = MaterialTheme.colorScheme.surface
         )
     )
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+private fun ChapterEditorScreenPreview() {
+    MaterialTheme {
+
+        Scaffold(
+            topBar = {
+                ChapterEditorTopBar(
+                    isEditMode = false,
+                    onNavigateBack = {}
+                )
+            }
+        ) { padding ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Text(
+                        text = "Nuevo Capítulo",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer
+                        )
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                text = "Capítulo",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                            Text(
+                                text = "1",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedTextField(
+                        value = "El Comienzo de una Aventura",
+                        onValueChange = {},
+                        label = { Text("Título del Capítulo") },
+                        placeholder = { Text("Ingresa el título") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+
+                    OutlinedTextField(
+                        value = "Había una vez en un reino lejano...",
+                        onValueChange = {},
+                        label = { Text("Contenido") },
+                        placeholder = { Text("Escribe tu capítulo aquí...") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 400.dp),
+                        supportingText = {
+                            Text("38 caracteres")
+                        },
+                        maxLines = Int.MAX_VALUE
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = {},
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("Guardar Borrador")
+                        }
+
+                        Button(
+                            onClick = {},
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("Publicar")
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(32.dp))
+                }
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ChapterEditorTopBarPreview() {
+    MaterialTheme {
+        ChapterEditorTopBar(
+            isEditMode = false,
+            onNavigateBack = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ChapterEditorTopBarEditModePreview() {
+    MaterialTheme {
+        ChapterEditorTopBar(
+            isEditMode = true,
+            onNavigateBack = {}
+        )
+    }
 }
