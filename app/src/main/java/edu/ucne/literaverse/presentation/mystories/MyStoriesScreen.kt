@@ -13,7 +13,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -476,7 +475,10 @@ private fun getEmptyStateMessage(filter: StoryFilter) = when (filter) {
     StoryFilter.ALL -> "Comienza a escribir tu primera historia"
     StoryFilter.DRAFTS -> "Tus borradores aparecerán aquí"
     StoryFilter.PUBLISHED -> "Publica una historia para verla aquí"
-  
+}
+
+
+
 @Preview(showBackground = true)
 @Composable
 private fun MyStoriesTopBarPreview() {
@@ -532,5 +534,17 @@ private fun StoryListItemPreview() {
 private fun EmptyStoriesStatePreview() {
     MaterialTheme {
         EmptyStoriesState(filter = StoryFilter.DRAFTS)
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun DeleteStoryDialogPreview() {
+    MaterialTheme {
+        DeleteStoryDialog(
+            storyTitle = "Mi Historia de Prueba",
+            onDismiss = {},
+            onConfirm = {}
+        )
     }
 }
