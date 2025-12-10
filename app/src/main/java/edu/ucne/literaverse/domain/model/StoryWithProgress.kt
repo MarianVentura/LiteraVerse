@@ -20,7 +20,7 @@ data class StoryWithProgress(
         get() = progress?.chapterTitle
 
     val lastReadTimeAgo: String
-        get() = progress?.lastReadAt?.let { lastReadAtStr ->
+        get() = progress?.lastReadAt?.let { _ ->
             try {
                 "Recientemente"
             } catch (e: Exception) {

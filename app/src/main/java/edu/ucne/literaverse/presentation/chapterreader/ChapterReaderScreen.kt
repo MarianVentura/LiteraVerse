@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -87,32 +86,36 @@ fun ChapterReaderScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            if (state.isLoading) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
+            when {
+                state.isLoading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
                 }
-            } else if (state.error != null) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = state.error ?: "Error desconocido",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.error
+                state.error != null -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = state.error ?: "Error desconocido",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+                state.chapter != null -> {
+                    ChapterReaderContent(
+                        chapter = state.chapter!!,
+                        onToggleMenu = { viewModel.onEvent(ChapterReaderEvent.OnToggleMenu) },
+                        onScrollPositionChanged = { position ->
+                            viewModel.onEvent(ChapterReaderEvent.OnScrollPositionChanged(position))
+                        }
                     )
                 }
-            } else if (state.chapter != null) {
-                ChapterReaderContent(
-                    chapter = state.chapter!!,
-                    onToggleMenu = { viewModel.onEvent(ChapterReaderEvent.OnToggleMenu) },
-                    onScrollPositionChanged = { position ->
-                        viewModel.onEvent(ChapterReaderEvent.OnScrollPositionChanged(position))
-                    }
-                )
             }
 
             if (state.totalChapters > 0 && !state.isLoading) {
@@ -190,10 +193,9 @@ fun ChapterReaderBottomBar(
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = "Capítulo anterior",
-                tint = if (hasPrevious) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                tint = when {
+                    hasPrevious -> MaterialTheme.colorScheme.primary
+                    else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
                 }
             )
         }
@@ -211,10 +213,9 @@ fun ChapterReaderBottomBar(
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                 contentDescription = "Siguiente capítulo",
-                tint = if (hasNext) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                tint = when {
+                    hasNext -> MaterialTheme.colorScheme.primary
+                    else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
                 }
             )
         }

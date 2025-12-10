@@ -1,11 +1,6 @@
 package edu.ucne.literaverse.presentation.navigation
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -23,7 +18,7 @@ import edu.ucne.literaverse.presentation.perfil.PerfilScreen
 import edu.ucne.literaverse.presentation.search.SearchScreen
 import edu.ucne.literaverse.presentation.storychapters.StoryChaptersScreen
 import edu.ucne.literaverse.presentation.write.WriterPanelScreen
-import androidx.compose.ui.tooling.preview.Preview
+
 
 
 

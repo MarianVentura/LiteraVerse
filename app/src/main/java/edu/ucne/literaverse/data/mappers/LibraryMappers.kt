@@ -4,7 +4,6 @@ import edu.ucne.literaverse.data.local.entities.StoryEntity
 import edu.ucne.literaverse.data.remote.dto.ReadingProgressRequest
 import edu.ucne.literaverse.data.remote.dto.ReadingProgressResponse
 import edu.ucne.literaverse.domain.model.ReadingProgress
-import edu.ucne.literaverse.domain.model.StoryDetail
 import edu.ucne.literaverse.domain.model.StoryWithProgress
 
 fun ReadingProgressResponse.toDomain(): ReadingProgress = ReadingProgress(

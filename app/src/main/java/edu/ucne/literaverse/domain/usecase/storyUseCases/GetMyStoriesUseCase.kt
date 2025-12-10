@@ -8,7 +8,7 @@ import javax.inject.Inject
 class GetMyStoriesUseCase @Inject constructor(
     private val repository: StoryRepository
 ) {
-    suspend operator fun invoke(userId: Int): Flow<List<StoryDetail>> {
+     operator fun invoke(userId: Int): Flow<List<StoryDetail>> {
         return repository.getStoriesByUser(userId)
     }
 }

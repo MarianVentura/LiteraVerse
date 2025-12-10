@@ -12,12 +12,12 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-abstract class SearchRepositoryModule {
+interface SearchRepositoryModule {
 
 
     @Binds
     @Singleton
-    abstract fun bindSearchRepository(
+     fun bindSearchRepository(
         searchRepositoryImpl: SearchRepositoryImpl
     ): SearchRepository
 }

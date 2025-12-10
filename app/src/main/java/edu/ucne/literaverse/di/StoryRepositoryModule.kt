@@ -10,10 +10,10 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-abstract class StoryRepositoryModule {
+interface StoryRepositoryModule {
     @Binds
     @Singleton
-    abstract fun bindStoryRepository(
+      fun bindStoryRepository(
         storyRepositoryImpl: StoryRepositoryImpl
     ): StoryRepository
 }
