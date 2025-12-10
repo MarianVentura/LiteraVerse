@@ -10,7 +10,6 @@ import edu.ucne.literaverse.data.remote.dto.UpdateChapterRequest
 import edu.ucne.literaverse.domain.model.Chapter
 import edu.ucne.literaverse.domain.repository.ChapterRepository
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
