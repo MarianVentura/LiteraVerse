@@ -34,8 +34,8 @@ class ChapterReaderViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val storyId: Int = savedStateHandle.get<Int>("storyId") ?: 0
-    private val chapterId: Int = savedStateHandle.get<Int>("chapterId") ?: 0
+    private val storyId: Int = savedStateHandle["storyId"] ?: 0
+    private val chapterId: Int = savedStateHandle["chapterId"] ?: 0
 
     private val _state = MutableStateFlow(ChapterReaderUiState(isLoading = true))
     val state: StateFlow<ChapterReaderUiState> = _state.asStateFlow()
@@ -63,53 +63,47 @@ class ChapterReaderViewModel @Inject constructor(
     private fun loadChapter(storyId: Int, chapterId: Int) = viewModelScope.launch {
         _state.update { it.copy(isLoading = true, error = null) }
 
-        when (val result = getChapterUseCase(storyId, chapterId)) {
-            is Resource.Success -> {
-                val chapter = result.data
-                if (chapter != null) {
-                    _state.update {
-                        it.copy(
-                            chapter = chapter,
-                            currentChapterNumber = chapter.chapterNumber,
-                            isLoading = false,
-                            error = null
-                        )
-                    }
-                    checkNavigationAvailability(storyId, chapter.chapterNumber)
-                } else {
-                    _state.update {
-                        it.copy(
-                            isLoading = false,
-                            error = "Capítulo no encontrado"
-                        )
-                    }
+        val result = getChapterUseCase(storyId, chapterId)
+        if (result is Resource.Success) {
+            val chapter = result.data
+            if (chapter != null) {
+                _state.update {
+                    it.copy(
+                        chapter = chapter,
+                        currentChapterNumber = chapter.chapterNumber,
+                        isLoading = false,
+                        error = null
+                    )
                 }
-            }
-            is Resource.Error -> {
+                checkNavigationAvailability(storyId, chapter.chapterNumber)
+            } else {
                 _state.update {
                     it.copy(
                         isLoading = false,
-                        error = result.message ?: "Error al cargar capítulo"
+                        error = "Capítulo no encontrado"
                     )
                 }
             }
-            is Resource.Loading -> {}
+        } else if (result is Resource.Error) {
+            _state.update {
+                it.copy(
+                    isLoading = false,
+                    error = result.message ?: "Error al cargar capítulo"
+                )
+            }
         }
     }
 
     private fun loadStory(storyId: Int) = viewModelScope.launch {
-        when (val result = getStoryDetailUseCase(storyId)) {
-            is Resource.Success -> {
-                val story = result.data
-                _state.update {
-                    it.copy(
-                        story = story,
-                        totalChapters = story?.chapters?.size ?: 0
-                    )
-                }
+        val result = getStoryDetailUseCase(storyId)
+        if (result is Resource.Success) {
+            val story = result.data
+            _state.update {
+                it.copy(
+                    story = story,
+                    totalChapters = story?.chapters?.size ?: 0
+                )
             }
-            is Resource.Error -> {}
-            is Resource.Loading -> {}
         }
     }
 
@@ -128,48 +122,42 @@ class ChapterReaderViewModel @Inject constructor(
     private fun navigateToNextChapter() = viewModelScope.launch {
         val currentChapterNumber = _state.value.currentChapterNumber
 
-        when (val result = getNextChapterUseCase(storyId, currentChapterNumber)) {
-            is Resource.Success -> {
-                val nextChapter = result.data
-                if (nextChapter != null) {
-                    saveProgress()
-                    loadChapter(storyId, nextChapter.chapterId)
-                } else {
-                    _state.update {
-                        it.copy(userMessage = "No hay más capítulos")
-                    }
-                }
-            }
-            is Resource.Error -> {
+        val result = getNextChapterUseCase(storyId, currentChapterNumber)
+        if (result is Resource.Success) {
+            val nextChapter = result.data
+            if (nextChapter != null) {
+                saveProgress()
+                loadChapter(storyId, nextChapter.chapterId)
+            } else {
                 _state.update {
-                    it.copy(userMessage = result.message ?: "Error al cargar siguiente capítulo")
+                    it.copy(userMessage = "No hay más capítulos")
                 }
             }
-            is Resource.Loading -> {}
+        } else if (result is Resource.Error) {
+            _state.update {
+                it.copy(userMessage = result.message ?: "Error al cargar siguiente capítulo")
+            }
         }
     }
 
     private fun navigateToPreviousChapter() = viewModelScope.launch {
         val currentChapterNumber = _state.value.currentChapterNumber
 
-        when (val result = getPreviousChapterUseCase(storyId, currentChapterNumber)) {
-            is Resource.Success -> {
-                val previousChapter = result.data
-                if (previousChapter != null) {
-                    saveProgress()
-                    loadChapter(storyId, previousChapter.chapterId)
-                } else {
-                    _state.update {
-                        it.copy(userMessage = "Este es el primer capítulo")
-                    }
-                }
-            }
-            is Resource.Error -> {
+        val result = getPreviousChapterUseCase(storyId, currentChapterNumber)
+        if (result is Resource.Success) {
+            val previousChapter = result.data
+            if (previousChapter != null) {
+                saveProgress()
+                loadChapter(storyId, previousChapter.chapterId)
+            } else {
                 _state.update {
-                    it.copy(userMessage = result.message ?: "Error al cargar capítulo anterior")
+                    it.copy(userMessage = "Este es el primer capítulo")
                 }
             }
-            is Resource.Loading -> {}
+        } else if (result is Resource.Error) {
+            _state.update {
+                it.copy(userMessage = result.message ?: "Error al cargar capítulo anterior")
+            }
         }
     }
 
