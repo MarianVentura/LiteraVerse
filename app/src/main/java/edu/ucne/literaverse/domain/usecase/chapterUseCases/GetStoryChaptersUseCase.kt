@@ -8,7 +8,7 @@ import javax.inject.Inject
 class GetStoryChaptersUseCase @Inject constructor(
     private val repository: ChapterRepository
 ) {
-    suspend operator fun invoke(storyId: Int): Flow<List<Chapter>> {
+     operator fun invoke(storyId: Int): Flow<List<Chapter>> {
         return repository.getChaptersByStory(storyId)
     }
 }
