@@ -10,10 +10,10 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-abstract class ProfileRepositoryModule {
+interface ProfileRepositoryModule {
     @Binds
     @Singleton
-    abstract fun bindProfileRepository(
+     fun bindProfileRepository(
         profileRepositoryImpl: ProfileRepositoryImpl
     ): ProfileRepository
 }
