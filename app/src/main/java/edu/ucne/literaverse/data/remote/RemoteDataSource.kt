@@ -412,7 +412,7 @@ class RemoteDataSource @Inject constructor(
         return try {
             val response = literaVerseApi.isFavorite(userId, storyId)
             if (response.isSuccessful) {
-                val isFav = response.body()?.get("isFavorite") as? Boolean ?: false
+                val isFav = response.body()?.get("isFavorite") as Boolean ?: false
                 Resource.Success(isFav)
             } else {
                 Resource.Error("HTTP ${response.code()} ${response.message()}")
