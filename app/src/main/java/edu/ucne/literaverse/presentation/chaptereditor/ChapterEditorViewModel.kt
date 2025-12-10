@@ -25,8 +25,8 @@ class ChapterEditorViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val storyId: Int = savedStateHandle.get<Int>("storyId") ?: 0
-    private val chapterId: Int? = savedStateHandle.get<Int>("chapterId")
+    private val storyId: Int = savedStateHandle["storyId"] ?: 0
+    private val chapterId: Int? = savedStateHandle["chapterId"]
 
     private val _state = MutableStateFlow(ChapterEditorUiState())
     val state: StateFlow<ChapterEditorUiState> = _state.asStateFlow()
@@ -65,37 +65,34 @@ class ChapterEditorViewModel @Inject constructor(
     private fun loadChapter(storyId: Int, chapterId: Int) = viewModelScope.launch {
         _state.update { it.copy(isLoading = true, isEditMode = true) }
 
-        when (val result = getChapterUseCase(storyId, chapterId)) {
-            is Resource.Success -> {
-                val chapter = result.data
-                if (chapter != null) {
-                    _state.update {
-                        it.copy(
-                            title = chapter.title,
-                            content = chapter.content,
-                            chapterNumber = chapter.chapterNumber,
-                            isLoading = false,
-                            error = null
-                        )
-                    }
-                } else {
-                    _state.update {
-                        it.copy(
-                            isLoading = false,
-                            error = "Capítulo no encontrado"
-                        )
-                    }
+        val result = getChapterUseCase(storyId, chapterId)
+        if (result is Resource.Success) {
+            val chapter = result.data
+            if (chapter != null) {
+                _state.update {
+                    it.copy(
+                        title = chapter.title,
+                        content = chapter.content,
+                        chapterNumber = chapter.chapterNumber,
+                        isLoading = false,
+                        error = null
+                    )
                 }
-            }
-            is Resource.Error -> {
+            } else {
                 _state.update {
                     it.copy(
                         isLoading = false,
-                        error = result.message ?: "Error al cargar capítulo"
+                        error = "Capítulo no encontrado"
                     )
                 }
             }
-            is Resource.Loading -> {}
+        } else if (result is Resource.Error) {
+            _state.update {
+                it.copy(
+                    isLoading = false,
+                    error = result.message ?: "Error al cargar capítulo"
+                )
+            }
         }
     }
 
@@ -141,25 +138,21 @@ class ChapterEditorViewModel @Inject constructor(
             )
         }
 
-        when (result) {
-            is Resource.Success -> {
-                _state.update {
-                    it.copy(
-                        isLoading = false,
-                        success = true,
-                        error = null
-                    )
-                }
+        if (result is Resource.Success) {
+            _state.update {
+                it.copy(
+                    isLoading = false,
+                    success = true,
+                    error = null
+                )
             }
-            is Resource.Error -> {
-                _state.update {
-                    it.copy(
-                        isLoading = false,
-                        error = result.message ?: "Error al guardar capítulo"
-                    )
-                }
+        } else if (result is Resource.Error) {
+            _state.update {
+                it.copy(
+                    isLoading = false,
+                    error = result.message ?: "Error al guardar capítulo"
+                )
             }
-            is Resource.Loading -> {}
         }
     }
 
