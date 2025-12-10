@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface StoryRepository {
     suspend fun createStory(userId: Int, title: String, synopsis: String, genre: String, tags: String?): Resource<StoryDetail>
-    suspend fun getStoriesByUser(userId: Int): Flow<List<StoryDetail>>
+    fun getStoriesByUser(userId: Int): Flow<List<StoryDetail>>
     suspend fun getStoryById(storyId: Int): Resource<StoryDetail>
     suspend fun updateStory(storyId: Int, title: String, synopsis: String, genre: String, tags: String?): Resource<StoryDetail>
     suspend fun deleteStory(storyId: Int): Resource<Unit>
