@@ -1,21 +1,19 @@
 package edu.ucne.literaverse.data.repository
 
 import edu.ucne.literaverse.data.local.dao.StoryDao
-import edu.ucne.literaverse.data.mappers.toCreateRequest
 import edu.ucne.literaverse.data.mappers.toDomain
 import edu.ucne.literaverse.data.mappers.toEntity
 import edu.ucne.literaverse.data.mappers.toStoryReader
-import edu.ucne.literaverse.data.mappers.toUpdateRequest
 import edu.ucne.literaverse.data.remote.RemoteDataSource
 import edu.ucne.literaverse.data.remote.Resource
 import edu.ucne.literaverse.data.remote.dto.CreateStoryRequest
 import edu.ucne.literaverse.data.remote.dto.UpdateStoryRequest
-import edu.ucne.literaverse.data.remote.dto.StoryDetailResponse
 import edu.ucne.literaverse.domain.model.StoryDetail
 import edu.ucne.literaverse.domain.model.StoryReader
 import edu.ucne.literaverse.domain.repository.StoryRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import javax.inject.Inject
 
 class StoryRepositoryImpl @Inject constructor(
@@ -67,17 +65,17 @@ class StoryRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getStoriesByUser(userId: Int): Flow<List<StoryDetail>> {
-        when (val result = remoteDataSource.getStoriesByUser(userId)) {
-            is Resource.Success -> {
-                result.data?.forEach { storyDao.upsert(it.toEntity()) }
+    override fun getStoriesByUser(userId: Int): Flow<List<StoryDetail>> {
+        return storyDao.getStoriesByUser(userId)
+            .onStart {
+                val result = remoteDataSource.getStoriesByUser(userId)
+                if (result is Resource.Success) {
+                    result.data?.forEach { storyDao.upsert(it.toEntity()) }
+                }
             }
-            else -> {}
-        }
-
-        return storyDao.getStoriesByUser(userId).map { entities ->
-            entities.map { it.toDomain() }
-        }
+            .map { entities ->
+                entities.map { it.toDomain() }
+            }
     }
 
     override suspend fun getStoryById(storyId: Int): Resource<StoryDetail> {
@@ -189,6 +187,7 @@ class StoryRepositoryImpl @Inject constructor(
             storyDao.markAsSynced(story.storyId)
         }
     }
+
     override suspend fun getStoryForReader(storyId: Int): Resource<StoryReader> {
         return when (val result = remoteDataSource.getStoryForReader(storyId)) {
             is Resource.Success -> {
@@ -202,5 +201,3 @@ class StoryRepositoryImpl @Inject constructor(
         }
     }
 }
-
-
