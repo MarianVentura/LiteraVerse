@@ -12,7 +12,6 @@ import edu.ucne.literaverse.domain.model.StoryWithProgress
 import edu.ucne.literaverse.domain.repository.LibraryRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class LibraryRepositoryImpl @Inject constructor(
@@ -43,15 +42,13 @@ class LibraryRepositoryImpl @Inject constructor(
         val existingStory = storyDao.getStoryById(storyId)
 
         if (existingStory == null) {
-            when (val storyResult = remoteDataSource.getStoryById(storyId)) {
-                is Resource.Success -> {
-                    storyResult.data?.let { storyDetail ->
-                        val storyDomain = storyDetail.toDomain()
-                        val entity = storyDomain.toEntity().copy(isFavorite = true)
-                        storyDao.upsert(entity)
-                    }
+            val storyResult = remoteDataSource.getStoryById(storyId)
+            if (storyResult is Resource.Success) {
+                storyResult.data?.let { storyDetail ->
+                    val storyDomain = storyDetail.toDomain()
+                    val entity = storyDomain.toEntity().copy(isFavorite = true)
+                    storyDao.upsert(entity)
                 }
-                else -> {}
             }
         } else {
             storyDao.updateFavoriteStatus(storyId, true)
@@ -150,18 +147,16 @@ class LibraryRepositoryImpl @Inject constructor(
         val existingStory = storyDao.getStoryById(storyId)
 
         if (existingStory == null) {
-            when (val storyResult = remoteDataSource.getStoryById(storyId)) {
-                is Resource.Success -> {
-                    storyResult.data?.let { storyDetail ->
-                        val storyDomain = storyDetail.toDomain()
-                        val entity = storyDomain.toEntity().copy(
-                            isCompleted = true,
-                            isReading = false
-                        )
-                        storyDao.upsert(entity)
-                    }
+            val storyResult = remoteDataSource.getStoryById(storyId)
+            if (storyResult is Resource.Success) {
+                storyResult.data?.let { storyDetail ->
+                    val storyDomain = storyDetail.toDomain()
+                    val entity = storyDomain.toEntity().copy(
+                        isCompleted = true,
+                        isReading = false
+                    )
+                    storyDao.upsert(entity)
                 }
-                else -> {}
             }
         } else {
             storyDao.updateCompletedStatus(storyId, true)
@@ -175,15 +170,13 @@ class LibraryRepositoryImpl @Inject constructor(
         val existingStory = storyDao.getStoryById(storyId)
 
         if (existingStory == null && isReading) {
-            when (val storyResult = remoteDataSource.getStoryById(storyId)) {
-                is Resource.Success -> {
-                    storyResult.data?.let { storyDetail ->
-                        val storyDomain = storyDetail.toDomain()
-                        val entity = storyDomain.toEntity().copy(isReading = true)
-                        storyDao.upsert(entity)
-                    }
+            val storyResult = remoteDataSource.getStoryById(storyId)
+            if (storyResult is Resource.Success) {
+                storyResult.data?.let { storyDetail ->
+                    val storyDomain = storyDetail.toDomain()
+                    val entity = storyDomain.toEntity().copy(isReading = true)
+                    storyDao.upsert(entity)
                 }
-                else -> {}
             }
         } else {
             storyDao.updateReadingStatus(storyId, isReading)
@@ -193,41 +186,35 @@ class LibraryRepositoryImpl @Inject constructor(
     }
 
     override suspend fun syncLibrary(userId: Int) {
-        when (val favResult = remoteDataSource.getFavorites(userId)) {
-            is Resource.Success -> {
-                favResult.data?.forEach { storyResponse ->
-                    val entity = storyResponse.toEntity().copy(isFavorite = true)
-                    storyDao.upsert(entity)
-                }
+        val favResult = remoteDataSource.getFavorites(userId)
+        if (favResult is Resource.Success) {
+            favResult.data?.forEach { storyResponse ->
+                val entity = storyResponse.toEntity().copy(isFavorite = true)
+                storyDao.upsert(entity)
             }
-            else -> {}
         }
 
-        when (val progResult = remoteDataSource.getReadingProgress(userId)) {
-            is Resource.Success -> {
-                progResult.data?.forEach { progress ->
-                    val story = storyDao.getStoryById(progress.storyId)
-                    story?.let {
-                        storyDao.updateReadingProgress(
-                            storyId = progress.storyId,
-                            chapterId = progress.chapterId,
-                            scrollPosition = progress.scrollPosition,
-                            lastReadAt = System.currentTimeMillis()
-                        )
-                    }
+        val progResult = remoteDataSource.getReadingProgress(userId)
+        if (progResult is Resource.Success) {
+            progResult.data?.forEach { progress ->
+                val story = storyDao.getStoryById(progress.storyId)
+                story?.let {
+                    storyDao.updateReadingProgress(
+                        storyId = progress.storyId,
+                        chapterId = progress.chapterId,
+                        scrollPosition = progress.scrollPosition,
+                        lastReadAt = System.currentTimeMillis()
+                    )
                 }
             }
-            else -> {}
         }
 
-        when (val compResult = remoteDataSource.getCompletedStories(userId)) {
-            is Resource.Success -> {
-                compResult.data?.forEach { storyResponse ->
-                    val entity = storyResponse.toEntity().copy(isCompleted = true)
-                    storyDao.upsert(entity)
-                }
+        val compResult = remoteDataSource.getCompletedStories(userId)
+        if (compResult is Resource.Success) {
+            compResult.data?.forEach { storyResponse ->
+                val entity = storyResponse.toEntity().copy(isCompleted = true)
+                storyDao.upsert(entity)
             }
-            else -> {}
         }
     }
 }
